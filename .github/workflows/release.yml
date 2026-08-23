@@ -41,6 +41,22 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'AnyFile Convert ${{ github.ref_name }}'
-          releaseBody: 'Download the installer below to start using AnyFile Convert on Windows.'
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
+          releaseBody: |
+            ## 🎉 AnyFile Convert 1.0.0 - First Public Release
+            
+            Welcome to the first official release of **AnyFile Convert**!
+            
+            ### ✨ Features Included
+            - 🚀 Complete offline-first native processing architecture
+            - 🖼️ Lightning-fast Image tools (JPG <-> PNG, Compress)
+            - 📄 PDF tools (Merge, Split)
+            - 🤐 Archive tools (Create/Extract ZIP)
+            - 🎥 Video tools (Extract Audio via FFmpeg)
+            - 🔄 Secure Cryptographic Auto-Updater
+            - 🎨 Premium Dark/Red glassmorphism aesthetic UI
+            - 🪟 Native Windows Context Menu (Right-click) integration
+
+            *Enjoy complete privacy with 0 cloud uploads and 0 tracking!*
+          args: ${{ matrix.args }}

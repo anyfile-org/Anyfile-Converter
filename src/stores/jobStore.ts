@@ -50,68 +50,63 @@ export const useJobStore = create<JobStore>((set, get) => ({
       
       switch (event.type) {
         case 'job_created':
-          // We need to fetch the full job details when created
-          // To keep it simple synchronously, we just fetch it, 
-          // but we can't await in setState, so we fire and forget
-          jobsService.get(event.id).then((job) => {
-            if (job) {
-              set((s) => ({
-                jobs: { ...s.jobs, [job.id]: job },
-                jobOrder: [job.id, ...s.jobOrder.filter(id => id !== job.id)]
-              }));
+          jobsService.get(event.id).then((fetchedJob) => {
+            if (fetchedJob) {
+              set((s) => {
+                const existingJob = s.jobs[fetchedJob.id];
+                // If events arrived before the fetch completed, merge them!
+                const mergedJob = existingJob 
+                  ? { ...fetchedJob, ...existingJob } 
+                  : fetchedJob;
+                  
+                return {
+                  jobs: { ...s.jobs, [fetchedJob.id]: mergedJob },
+                  jobOrder: [fetchedJob.id, ...s.jobOrder.filter(id => id !== fetchedJob.id)]
+                };
+              });
             }
           });
           return state; // No immediate change
           
         case 'job_started':
-          if (newJobs[event.id]) {
-            newJobs[event.id] = { 
-              ...newJobs[event.id], 
-              state: 'running',
-              started_at: new Date().toISOString()
-            };
-          }
+          newJobs[event.id] = { 
+            ...(newJobs[event.id] || {} as any), 
+            state: 'running',
+            started_at: new Date().toISOString()
+          };
           break;
           
         case 'progress_updated':
-          if (newJobs[event.id]) {
-            newJobs[event.id] = {
-              ...newJobs[event.id],
-              progress: event.progress
-            };
-          }
+          newJobs[event.id] = {
+            ...(newJobs[event.id] || {} as any),
+            progress: event.progress
+          };
           break;
           
         case 'job_completed':
-          if (newJobs[event.id]) {
-            newJobs[event.id] = {
-              ...newJobs[event.id],
-              state: 'completed',
-              completed_at: new Date().toISOString(),
-              result: event.result
-            };
-          }
+          newJobs[event.id] = {
+            ...(newJobs[event.id] || {} as any),
+            state: 'completed',
+            completed_at: new Date().toISOString(),
+            result: event.result
+          };
           break;
           
         case 'job_failed':
-          if (newJobs[event.id]) {
-            newJobs[event.id] = {
-              ...newJobs[event.id],
-              state: 'failed',
-              completed_at: new Date().toISOString(),
-              error: event.error
-            };
-          }
+          newJobs[event.id] = {
+            ...(newJobs[event.id] || {} as any),
+            state: 'failed',
+            completed_at: new Date().toISOString(),
+            error: event.error
+          };
           break;
           
         case 'job_cancelled':
-          if (newJobs[event.id]) {
-            newJobs[event.id] = {
-              ...newJobs[event.id],
-              state: 'cancelled',
-              completed_at: new Date().toISOString()
-            };
-          }
+          newJobs[event.id] = {
+            ...(newJobs[event.id] || {} as any),
+            state: 'cancelled',
+            completed_at: new Date().toISOString()
+          };
           break;
       }
       
