@@ -9,8 +9,7 @@ use tauri::State;
 use crate::AppState;
 
 /// User-configurable application settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppSettings {
     /// Default output directory. None = same directory as input.
     pub default_output_dir: Option<String>,
@@ -19,7 +18,6 @@ pub struct AppSettings {
     /// Whether to send anonymous usage analytics. Default: false.
     pub analytics_enabled: bool,
 }
-
 
 /// Load settings from disk. Returns defaults if no settings file exists yet.
 #[tauri::command]

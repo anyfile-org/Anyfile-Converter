@@ -148,7 +148,7 @@ fn get_startup_args() -> StartupArgs {
     let args: Vec<String> = std::env::args().collect();
     let mut file = None;
     let mut tool = None;
-    
+
     for i in 0..args.len() {
         if args[i] == "--file" && i + 1 < args.len() {
             file = Some(args[i + 1].clone());
@@ -157,6 +157,6 @@ fn get_startup_args() -> StartupArgs {
             tool = Some(args[i + 1].clone());
         }
     }
-    
+
     StartupArgs { file, tool }
 }

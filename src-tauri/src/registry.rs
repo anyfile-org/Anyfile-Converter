@@ -67,8 +67,11 @@ fn register_for_extensions(
     commands: &[(&str, &str, &str)], // (registry_key_id, display_label, tool_id)
 ) -> Result<(), Box<dyn std::error::Error>> {
     for ext in extensions {
-        let path = format!(r"Software\Classes\SystemFileAssociations\{}\shell\AnyFile Convert", ext);
-        
+        let path = format!(
+            r"Software\Classes\SystemFileAssociations\{}\shell\AnyFile Convert",
+            ext
+        );
+
         // We ignore errors on individual extensions (e.g. permission issues) and just try our best
         if let Ok((shell_key, _)) = hkcu.create_subkey(path) {
             let _ = shell_key.set_value("MUIVerb", &"AnyFile Convert");
@@ -81,7 +84,10 @@ fn register_for_extensions(
                     if let Ok((cmd_key, _)) = sub_shell.create_subkey(cmd_id) {
                         let _ = cmd_key.set_value("MUIVerb", &*label);
                         if let Ok((command_key, _)) = cmd_key.create_subkey("command") {
-                            let command_string = format!("\"{}\" --file \"%1\" --tool \"{}\"", safe_exe_path, tool_id);
+                            let command_string = format!(
+                                "\"{}\" --file \"%1\" --tool \"{}\"",
+                                safe_exe_path, tool_id
+                            );
                             let _ = command_key.set_value("", &command_string);
                         }
                     }
