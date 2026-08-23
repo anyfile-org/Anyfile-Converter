@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useSettingsStore } from '../stores/settingsStore';
-import { Settings2, Save, FolderOpen } from 'lucide-react';
+import { Settings2, Save, FolderOpen, Download } from 'lucide-react';
 import { AppSettings } from '../types/settings';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 
 export default function Settings() {
   const { settings, updateSettings, isLoading } = useSettingsStore();
   const [localSettings, setLocalSettings] = useState<AppSettings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<string | null>(null);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -57,6 +61,39 @@ export default function Settings() {
       }
     } catch (err) {
       console.error("Failed to select ffmpeg:", err);
+    }
+  };
+
+  const handleCheckUpdate = async () => {
+    setIsCheckingUpdate(true);
+    setUpdateStatus("Checking for updates...");
+    try {
+      const update = await check();
+      if (update) {
+        setUpdateStatus(`Downloading version ${update.version}...`);
+        await update.downloadAndInstall((event) => {
+          switch (event.event) {
+            case 'Started':
+              setUpdateStatus(`Downloading update (${event.data.contentLength} bytes)...`);
+              break;
+            case 'Progress':
+              setUpdateStatus(`Downloading...`);
+              break;
+            case 'Finished':
+              setUpdateStatus('Installing...');
+              break;
+          }
+        });
+        setUpdateStatus("Update installed. Restarting...");
+        await relaunch();
+      } else {
+        setUpdateStatus("You are on the latest version.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setUpdateStatus(`Error checking for updates: ${err.message || err}`);
+    } finally {
+      setIsCheckingUpdate(false);
     }
   };
 
@@ -122,6 +159,25 @@ export default function Settings() {
             <Save size={18} />
             {isSaving ? 'Saving...' : 'Save Settings'}
           </button>
+        </div>
+
+        {/* Application Updates */}
+        <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-light)', paddingTop: '1.5rem' }}>
+          <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Application Updates</label>
+          <div className="text-muted" style={{ fontSize: '0.85rem', marginBottom: '1rem' }}>
+            Check for the latest version of AnyFile Convert.
+          </div>
+          <div className="flex gap-4 items-center" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button 
+              className="btn btn-secondary" 
+              onClick={handleCheckUpdate}
+              disabled={isCheckingUpdate}
+            >
+              <Download size={18} />
+              {isCheckingUpdate ? 'Checking...' : 'Check for Updates'}
+            </button>
+            {updateStatus && <span style={{ fontSize: '0.85rem', color: 'var(--primary-accent)' }}>{updateStatus}</span>}
+          </div>
         </div>
 
       </div>
