@@ -1,4 +1,4 @@
-import { useState, useEffect, DragEvent } from 'react';
+import { useState, useEffect, useRef, DragEvent } from 'react';
 import { UploadCloud, Plus } from 'lucide-react';
 
 interface DropZoneProps {
@@ -7,15 +7,15 @@ interface DropZoneProps {
 
 export default function DropZone({ onFilesSelected }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
-  
-  // In Tauri 2.x, native drag-and-drop of files triggers specific events.
-  // We can also use an input type="file" as a fallback, but the browser
-  // security model usually prevents us from getting absolute paths from 
-  // standard HTML file inputs. Tauri provides a native file drop event.
-  
-  // Note: V0.1 we can use tauri dialog to pick files if drag and drop is complex
-  // but let's implement standard HTML drag and drop UI with a click-to-pick fallback.
 
+  // Store the callback in a ref so the effect never needs to re-run
+  // when the parent re-renders with a new function reference.
+  const callbackRef = useRef(onFilesSelected);
+  useEffect(() => {
+    callbackRef.current = onFilesSelected;
+  });
+
+  // Register Tauri native drag-drop listeners exactly once.
   useEffect(() => {
     let unlistenDrop: (() => void) | undefined;
     let unlistenHover: (() => void) | undefined;
@@ -24,12 +24,11 @@ export default function DropZone({ onFilesSelected }: DropZoneProps) {
     const setupListeners = async () => {
       try {
         const { listen } = await import('@tauri-apps/api/event');
-        
-        // In Tauri V2, file drop events are natively emitted
+
         unlistenDrop = await listen<{ paths: string[] }>('tauri://drag-drop', (event) => {
           setIsDragging(false);
           if (event.payload.paths && event.payload.paths.length > 0) {
-            onFilesSelected(event.payload.paths);
+            callbackRef.current(event.payload.paths);
           }
         });
 
@@ -41,80 +40,72 @@ export default function DropZone({ onFilesSelected }: DropZoneProps) {
           setIsDragging(false);
         });
       } catch (err) {
-        console.error("Failed to setup drag and drop listeners:", err);
+        console.error('Failed to setup drag and drop listeners:', err);
       }
     };
 
     setupListeners();
 
+    // Cleanup on unmount only
     return () => {
       if (unlistenDrop) unlistenDrop();
       if (unlistenHover) unlistenHover();
       if (unlistenCancel) unlistenCancel();
     };
-  }, [onFilesSelected]);
+  }, []); // ← empty dep array: register once, use ref for fresh callback
 
-  // Keep HTML5 handlers to prevent default browser behavior
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
-
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => e.preventDefault();
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => e.preventDefault();
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => e.preventDefault();
 
   const openFilePicker = async () => {
     try {
-      // Use Tauri's dialog API (requires @tauri-apps/plugin-dialog)
       const { open } = await import('@tauri-apps/plugin-dialog');
-      const selected = await open({
-        multiple: true,
-        // Optional: filters
-      });
-      
+      const selected = await open({ multiple: true });
       if (selected) {
-        if (Array.isArray(selected)) {
-          onFilesSelected(selected);
-        } else {
-          onFilesSelected([selected]);
-        }
+        const paths = Array.isArray(selected) ? selected : [selected];
+        callbackRef.current(paths);
       }
     } catch (err) {
-      console.error("Failed to open file picker:", err);
-      // Fallback or show error
+      console.error('Failed to open file picker:', err);
     }
   };
 
   return (
-    <div 
-      className={`glass-panel p-8 text-center flex-col items-center justify-center cursor-pointer transition-all ${isDragging ? 'scale-105 border-primary' : ''}`}
+    <div
       style={{
         minHeight: '300px',
         borderStyle: isDragging ? 'solid' : 'dashed',
         borderColor: isDragging ? 'var(--primary-accent)' : 'var(--border-light)',
         borderWidth: '2px',
-        display: 'flex'
+        borderRadius: 'var(--radius-md)',
+        background: isDragging ? 'rgba(239,68,68,0.06)' : 'var(--bg-surface)',
+        backdropFilter: 'var(--glass-blur)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        transform: isDragging ? 'scale(1.02)' : 'scale(1)',
       }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onClick={openFilePicker}
     >
-      <div 
+      <div
         style={{
           width: '80px',
           height: '80px',
           borderRadius: '50%',
-          background: 'rgba(59, 130, 246, 0.1)',
+          background: 'rgba(239, 68, 68, 0.1)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: '1.5rem',
-          color: 'var(--primary-accent)'
+          color: 'var(--primary-accent)',
+          transition: 'background 0.2s ease',
         }}
       >
         <UploadCloud size={40} />
@@ -125,12 +116,18 @@ export default function DropZone({ onFilesSelected }: DropZoneProps) {
       <p className="text-muted" style={{ marginBottom: '2rem' }}>
         or click to browse your computer
       </p>
-      
-      <button className="btn btn-primary" onClick={(e) => { e.stopPropagation(); openFilePicker(); }}>
+
+      <button
+        className="btn btn-primary"
+        onClick={(e) => {
+          e.stopPropagation();
+          openFilePicker();
+        }}
+      >
         <Plus size={18} />
         Choose Files
       </button>
-      
+
       <p className="text-muted" style={{ fontSize: '0.85rem', marginTop: '2rem' }}>
         Your files never leave your device. 100% private.
       </p>

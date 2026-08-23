@@ -1,52 +1,143 @@
 # Contributing to AnyFile Convert
 
-Welcome! AnyFile Convert is a privacy-first, offline-first desktop file toolbox. We are thrilled you want to contribute.
+Welcome! AnyFile Convert is a privacy-first, offline-first desktop file toolbox built with **Rust + Tauri + React**. We're thrilled you want to contribute!
 
-Our core philosophy is **"Vertical Slices."** We don't build generic abstractions hoping they'll be useful later. We build specific tools end-to-end (drop file → process → result) and extract patterns only when they repeat.
+Our core philosophy is **"Vertical Slices."** We build specific tools end-to-end (drop file → process → result) and extract patterns only when they repeat. No premature abstractions.
+
+---
+
+## 🚀 How to Get a PR Merged
+
+**This is the single most important section.** Follow these steps to get your contribution accepted smoothly:
+
+1. **Star this repository** — As the main thing to get your PR merged and support the project, please leave a star! ⭐
+2. **Find an issue** — Check the [issue tracker](https://github.com/anyfile-converter/Anyfile-Converter/issues) for issues labelled `good first issue` or `help wanted`.
+3. **Comment your approach** — Before writing any code, leave a comment on the issue describing your plan in 2–3 sentences. Wait for a maintainer to assign you. This prevents wasted effort if the approach is wrong.
+4. **Fork and branch** — Fork the repo, then create a branch named after your issue: `git checkout -b fix/settings-persistence` or `git checkout -b feat/webp-support`
+5. **One issue per PR** — Keep changes focused. PRs that fix multiple unrelated things are much harder to review and will be asked to be split up.
+6. **Pass CI locally first** — Before opening a PR, run these locally:
+   ```bash
+   cargo fmt --all
+   cargo clippy --workspace -- -D warnings
+   cargo test --workspace
+   npm run type-check
+   ```
+   CI will run these automatically and block merges if they fail. Don't waste CI minutes on formatting errors.
+6. **Open a PR with a clear description** — Explain *what* you changed and *why*. Link the issue number (e.g. `Closes #12`).
+7. **Respond to reviews** — A maintainer will review within 48 hours. Address any feedback promptly.
+
+> ⚡ **PRs that skip the issue comment step are likely to be closed**, even if the code is good — we can't have 3 people solving the same problem simultaneously.
+
+---
 
 ## Getting Started
 
-1. Read **[DEVELOPMENT.md](DEVELOPMENT.md)** for local setup instructions. (Note: These might be temporarily unavailable as we restructure documentation).
-2. Read **[ARCHITECTURE.md](ARCHITECTURE.md)** to understand the Rust + Tauri architecture.
-3. Check the [issue tracker](https://github.com/anyfile-converter/Anyfile-Converter/issues) for `good first issue` or `help wanted` labels.
+### Prerequisites
+
+| Tool | Version | Install |
+|---|---|---|
+| Rust | stable | `rustup install stable` |
+| Node.js | 18+ | [nodejs.org](https://nodejs.org) |
+| npm | 9+ | included with Node |
+
+### Local Setup
+
+```bash
+# Clone your fork
+git clone https://github.com/YOUR_USERNAME/Anyfile-Converter.git
+cd Anyfile-Converter
+
+# Install frontend dependencies
+npm install
+
+# Run the app in dev mode (Rust + React hot-reload)
+npm run tauri dev
+```
+
+The first launch compiles all Rust dependencies and takes 3–5 minutes. Subsequent launches are under 10 seconds thanks to incremental compilation.
+
+---
+
+## Project Structure
+
+```
+src/                   # React + TypeScript frontend
+  components/          # Reusable UI components
+  pages/               # Route-level pages (Home, Jobs, Settings, About)
+  stores/              # Zustand global state
+  services/            # Tauri IPC wrappers
+  types/               # Shared TypeScript types
+
+crates/
+  anyfile-core/        # Job lifecycle, JobManager, events (no Tauri!)
+  anyfile-tools/       # Tool implementations (image, pdf, video, archive)
+  anyfile-engines/     # Engine wrappers (ImageEngine, FFmpeg, PDF)
+  anyfile-fs/          # File path resolution, output naming
+
+src-tauri/
+  src/
+    commands/          # Tauri command handlers (thin wrappers)
+    lib.rs             # App wiring, setup, event bridge
+    registry.rs        # Windows context menu registration
+```
+
+---
 
 ## Adding a New Tool
 
-This is the most common and valuable contribution. You can add a new tool without touching the UI or the core job system!
+Adding a tool is the most impactful contribution and doesn't require touching the core job system.
 
-Please read **[Adding a Tool](docs/development/adding-a-tool.md)** for a 5-step guide.
+1. Create your tool struct in `crates/anyfile-tools/src/<category>/mod.rs` implementing the `Tool` trait
+2. Register it in `crates/anyfile-tools/src/lib.rs`
+3. Add it to the Windows context menu in `src-tauri/src/registry.rs`
+4. Add its display name to `TOOL_NAMES` in `src/components/jobs/JobCard.tsx`
+
+See the existing `JpgToPng` tool as a complete 60-line reference implementation.
+
+---
 
 ## Contribution Guidelines
 
-### 1. License
-By contributing, you agree that your contributions will be licensed under the project's **GPL-3.0-or-later** license.
+### Rust Code
+- Use stable Rust only
+- Run `cargo fmt --all` before committing
+- Run `cargo clippy --workspace -- -D warnings` and fix every warning
+- Keep `tauri` imports **out of** the `crates/` directory — those crates must be testable without Tauri
 
-### 2. Rust Code
-- We use stable Rust.
-- Run `cargo fmt` before committing.
-- Run `cargo clippy --workspace -- -D warnings` and fix any warnings.
-- Keep `tauri` out of the `crates/` directory.
+### Frontend Code
+- Use React and TypeScript
+- No external CSS frameworks (we use Vanilla CSS with CSS variables)
+- The frontend is a "dumb client" — all file processing logic lives in Rust
+- Run `npm run type-check` before committing
 
-### 3. Frontend Code
-- We use React and TypeScript.
-- Run `npm run lint` and `npm run type-check`.
-- The frontend should be a "dumb client" — all file processing logic must be in Rust.
+### Privacy First
+Never add network requests for file processing or telemetry. All file operations must work 100% offline.
 
-### 4. Privacy First
-Never add network requests to analytics, telemetry, or file processing. Operations must work 100% offline.
+---
 
 ## CI / CD & Release Automation
 
-We have automated GitHub Actions to ensure code quality and handle distribution:
+| Workflow | Trigger | What it does |
+|---|---|---|
+| **CI** | Every push + PR | `cargo clippy`, `cargo fmt`, `cargo test`, type-check |
+| **Release** | `git tag v*` | Builds optimized `.exe` NSIS installer, signs it, publishes to GitHub Releases |
 
-1. **Continuous Integration (CI):** Every push and PR runs `cargo clippy`, `cargo fmt`, and `cargo test`. This ensures code safety. Because we compile over 300+ native Rust dependencies, the CI can take 5-6 minutes. We use aggressive caching (`rust-cache`) to keep this as fast as possible, but please run these checks locally before pushing to save CI resources!
-2. **Automated Releases:** When a PR is merged into `main` and you want to publish a new update, you do **NOT** need to manually compile the `.exe`. Simply create a tag (e.g. `git tag v0.1.2`) and push it (`git push origin v0.1.2`).
-3. **The Build Process:** The release pipeline takes **10+ minutes** because it performs a highly-optimized `--release` compilation of the entire Rust backend, webview2 components, and cryptographic signatures. This heavy lifting guarantees the app runs blazing fast on users' machines. Once finished, it securely signs the NSIS installer and publishes it to GitHub Releases.
+> ⏱️ CI takes 5–6 minutes. Release builds take 10+ minutes. This is expected — we compile 300+ optimized Rust dependencies. We use `rust-cache` to minimize re-compilation.
+
+To publish a new release after a PR is merged:
+```bash
+git tag v1.0.4
+git push origin v1.0.4
+```
+GitHub Actions handles the rest automatically.
+
+---
 
 ## Submitting a Pull Request
-1. Fork the repo and create your branch from `main`.
-2. Ensure CI passes locally (tests, lint, formatting).
-3. Open a PR using the provided template.
-4. A maintainer will review your code. We aim to review PRs within 48 hours.
 
-Thank you for helping make file processing private and accessible!
+1. Fork → branch → implement → test locally
+2. Open a PR with `Closes #<issue_number>` in the description
+3. Ensure all CI checks pass
+4. A maintainer will review within 48 hours
+
+Thank you for helping make file processing private and accessible! 🙌

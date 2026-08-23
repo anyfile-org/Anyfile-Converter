@@ -11,7 +11,7 @@
 [![Rust](https://img.shields.io/badge/rust-1.78%2B-orange.svg)](https://www.rust-lang.org)
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/anyfile-converter/Anyfile-Converter/releases)
 
-> **Status: 🚧 Active Development — v0.1.0 (Developer Preview)**
+> **Status: 🚀 Stable Release — v1.0.3**
 
 </div>
 
@@ -27,6 +27,9 @@ Whether you need a **free image converter, offline PDF merger, or video audio ex
 - Merge and split PDFs
 - Extract audio from video
 - Create and extract archives
+- Lightning fast native UI powered by React and Vanilla CSS
+- Secure background operations with rust-based Job Manager
+- Dynamic dark-mode aesthetics
 - *(More operations in future releases)*
 
 ---
@@ -50,31 +53,31 @@ Most file conversion tools are web apps that upload your files to third-party se
 ### Images ✅ Implemented
 | Operation | Status |
 |---|---|
-| JPG/JPEG → PNG | ✅ v0.1 |
-| PNG → JPG | ✅ v0.1 |
-| Compress image (JPG, PNG) | ✅ v0.1 |
+| JPG/JPEG → PNG | ✅ v1.0 |
+| PNG → JPG | ✅ v1.0 |
+| Compress image (JPG, PNG) | ✅ v1.0 |
 | WebP conversion | 📋 Planned |
 | AVIF support | 📋 Planned |
 
 ### PDF ✅ Implemented
 | Operation | Status |
 |---|---|
-| Merge PDFs | ✅ v0.1 |
-| Split / extract pages | ✅ v0.1 |
+| Merge PDFs | ✅ v1.0 |
+| Split / extract pages | ✅ v1.0 |
 | Compress PDF | 📋 Planned |
 
 ### Video
 | Operation | Status |
 |---|---|
-| Extract audio from video | ✅ v0.1 (requires FFmpeg) |
+| Extract audio from video | ✅ v1.0 (requires FFmpeg) |
 | Convert to MP4 | 📋 Planned |
 | Compress video | 📋 Planned |
 
 ### Archive ✅ Implemented
 | Operation | Status |
 |---|---|
-| Create ZIP | ✅ v0.1 |
-| Extract ZIP | ✅ v0.1 |
+| Create ZIP | ✅ v1.0 |
+| Extract ZIP | ✅ v1.0 |
 | 7-Zip support | 📋 Planned |
 
 ### Audio
@@ -93,10 +96,10 @@ Most file conversion tools are web apps that upload your files to third-party se
 
 ## Installation
 
-> **Note:** v0.1.0 is not yet released. This section will be updated when the first installer is available.
+> **Note:** v1.0.3 is our latest stable release!
 
 **Windows:**
-1. Download `AnyFile Convert_0.1.1_x64-setup.exe` from the [Releases](https://github.com/anyfile-converter/Anyfile-Converter/releases) page
+1. Download `AnyFile.Convert_1.0.3_x64-setup.exe` from the [Releases](https://github.com/anyfile-converter/Anyfile-Converter/releases) page
 2. Run the installer
 3. AnyFile Convert is ready — no account, no activation
 
@@ -114,8 +117,8 @@ See **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** for full setup instructions.
 ```bash
 # Prerequisites: Rust (stable), Node.js 20+, Tauri prerequisites
 
-git clone https://github.com/anyfile-convert/anyfile-convert.git
-cd anyfile-convert
+git clone https://github.com/anyfile-converter/Anyfile-Converter.git
+cd Anyfile-Converter
 npm install
 npm run tauri dev
 ```
@@ -153,7 +156,7 @@ See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the full guide.
 
 **Adding a new conversion operation is the best way to start.** It takes 5 steps and does not require touching any existing code. See [Adding Your First Tool](docs/development/adding-a-tool.md).
 
-Good first issues are labelled [`good first issue`](https://github.com/anyfile-convert/anyfile-convert/issues?q=label%3A%22good+first+issue%22) on GitHub.
+Good first issues are labelled [`good first issue`](https://github.com/anyfile-converter/Anyfile-Converter/issues?q=label%3A%22good+first+issue%22) on GitHub.
 
 ---
 

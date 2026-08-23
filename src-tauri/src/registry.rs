@@ -15,19 +15,29 @@ pub fn register_context_menu() -> Result<(), Box<dyn std::error::Error>> {
 
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
 
-    // Images
+    // ── JPG / JPEG → can convert to PNG or compress ──────────────────────────
     register_for_extensions(
         &hkcu,
-        &[".jpg", ".jpeg", ".png", ".webp", ".bmp"],
+        &[".jpg", ".jpeg"],
         &safe_exe_path,
         &[
             ("cmd1", "Convert to PNG", "image.jpg_to_png"),
-            ("cmd2", "Convert to JPG", "image.png_to_jpg"),
-            ("cmd3", "Compress Image", "image.compress"),
+            ("cmd2", "Compress Image", "image.compress"),
         ],
     )?;
 
-    // Video
+    // ── PNG → can convert to JPG or compress ─────────────────────────────────
+    register_for_extensions(
+        &hkcu,
+        &[".png"],
+        &safe_exe_path,
+        &[
+            ("cmd1", "Convert to JPG", "image.png_to_jpg"),
+            ("cmd2", "Compress Image", "image.compress"),
+        ],
+    )?;
+
+    // ── Video → extract audio only ───────────────────────────────────────────
     register_for_extensions(
         &hkcu,
         &[".mp4", ".avi", ".mov", ".mkv", ".webm"],
@@ -35,7 +45,7 @@ pub fn register_context_menu() -> Result<(), Box<dyn std::error::Error>> {
         &[("cmd1", "Extract Audio", "video.extract_audio")],
     )?;
 
-    // PDF
+    // ── PDF → merge or split ─────────────────────────────────────────────────
     register_for_extensions(
         &hkcu,
         &[".pdf"],
@@ -46,15 +56,12 @@ pub fn register_context_menu() -> Result<(), Box<dyn std::error::Error>> {
         ],
     )?;
 
-    // Archives
+    // ── ZIP → extract only (create ZIP is done by selecting files in-app) ────
     register_for_extensions(
         &hkcu,
         &[".zip"],
         &safe_exe_path,
-        &[
-            ("cmd1", "Extract ZIP", "archive.extract_zip"),
-            ("cmd2", "Create ZIP", "archive.create_zip"),
-        ],
+        &[("cmd1", "Extract ZIP", "archive.extract_zip")],
     )?;
 
     Ok(())

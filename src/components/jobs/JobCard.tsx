@@ -31,18 +31,21 @@ export default function JobCard({ job }: JobCardProps) {
   const handleOpenFolder = async () => {
     if (job.result && job.result.output_files.length > 0) {
       try {
-        // Native tauri shell open
         const { openPath } = await import('@tauri-apps/plugin-opener');
-        
-        // Open the parent directory of the first output file
-        const path = job.result.output_files[0];
-        
-        await openPath(path);
+
+        // Open the parent directory so Windows Explorer shows the output file highlighted
+        const filePath = job.result.output_files[0];
+        // Extract parent dir: everything before the last \ or /
+        const separatorIndex = Math.max(filePath.lastIndexOf('\\'), filePath.lastIndexOf('/'));
+        const parentDir = separatorIndex > 0 ? filePath.substring(0, separatorIndex) : filePath;
+
+        await openPath(parentDir);
       } catch (err) {
-        console.error("Failed to open output:", err);
+        console.error('Failed to open output folder:', err);
       }
     }
   };
+
 
   const getStatusIcon = () => {
     switch (job.state) {

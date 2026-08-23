@@ -79,6 +79,19 @@ impl JobManager {
         self.event_tx.subscribe()
     }
 
+    /// Inject historical jobs loaded from disk into the in-memory store.
+    ///
+    /// Called once at startup. Jobs are inserted as-is (no re-execution).
+    pub async fn load_jobs(&self, jobs: Vec<Job>) {
+        let mut store = self.jobs.write().await;
+        for job in jobs {
+            store
+                .entry(job.id)
+                .or_insert_with(|| Arc::new(RwLock::new(job)));
+        }
+    }
+
+
     /// Submit a new job request.
     ///
     /// Returns the [`JobId`] immediately. Processing happens asynchronously.
