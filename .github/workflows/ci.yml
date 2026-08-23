@@ -14,7 +14,7 @@ jobs:
   # ── Rust ─────────────────────────────────────────────────────────────────────
   rust-fmt:
     name: Rust Format
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -24,7 +24,7 @@ jobs:
 
   rust-clippy:
     name: Rust Clippy
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -35,7 +35,7 @@ jobs:
 
   rust-test:
     name: Rust Tests
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -45,7 +45,7 @@ jobs:
   # ── Frontend ─────────────────────────────────────────────────────────────────
   frontend-lint:
     name: Frontend Lint & Type Check
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
