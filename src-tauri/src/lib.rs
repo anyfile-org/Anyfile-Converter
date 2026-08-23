@@ -10,8 +10,10 @@
 //! No business logic lives here. This is pure wiring.
 
 mod commands;
+pub mod analytics;
 
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyfile_core::{JobManager, ToolRegistry};
 use anyfile_tools::register_tools;
@@ -63,11 +65,20 @@ pub fn run() {
             commands::settings::save_settings,
         ])
         .setup(|app| {
+            // Setup Analytics Queue
+            let app_data_dir = app.path().app_data_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+            if !app_data_dir.exists() {
+                std::fs::create_dir_all(&app_data_dir).ok();
+            }
+            
+            let analytics_queue = Arc::new(analytics::AnalyticsQueue::new(app_data_dir));
+            analytics::AnalyticsQueue::start_worker(analytics_queue.clone());
+
             // Start the job event bridge on a background task
             let job_manager = app.state::<AppState>().job_manager.clone();
             let app_handle = app.handle().clone();
 
-            tokio::spawn(async move {
+            tauri::async_runtime::spawn(async move {
                 let mut rx = job_manager.subscribe();
                 loop {
                     match rx.recv().await {
@@ -75,6 +86,24 @@ pub fn run() {
                             // Forward every job event to the frontend
                             if let Err(e) = app_handle.emit("job-event", &event) {
                                 tracing::warn!("Failed to emit job event: {e}");
+                            }
+                            
+                            // If it's a completed event, push to analytics
+                            if let anyfile_core::JobEvent::JobCompleted { id: _, result: _ } = &event {
+                                // Real app would read settings here to check if analytics is enabled.
+                                // For MVP, we assume true or you'd pass a settings state.
+                                let a_event = analytics::AnalyticsEvent {
+                                    event: "operation_completed".to_string(),
+                                    category: "tool".to_string(),
+                                    operation: "job".to_string(), // In full implementation, we'd look up the tool name from the job
+                                    platform: "windows".to_string(),
+                                    app_version: app_handle.package_info().version.to_string(),
+                                    timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs(),
+                                };
+                                let q = analytics_queue.clone();
+                                tauri::async_runtime::spawn(async move {
+                                    let _ = q.push(a_event).await;
+                                });
                             }
                         }
                         Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
