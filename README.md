@@ -2,24 +2,26 @@
 
 <div align="center">
 
-**A free, open-source, privacy-first, offline-first desktop file toolbox.**
+**The Ultimate Free, Open-Source, Offline Desktop File Converter & Toolbox**
+
+*Securely convert, merge, compress, and process your images, PDFs, videos, and archives entirely on your local machine.*
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![CI](https://github.com/anyfile-convert/anyfile-convert/actions/workflows/ci.yml/badge.svg)](https://github.com/anyfile-convert/anyfile-convert/actions/workflows/ci.yml)
+[![CI](https://github.com/anyfile-converter/Anyfile-Converter-windows/actions/workflows/ci.yml/badge.svg)](https://github.com/anyfile-converter/Anyfile-Converter-windows/actions/workflows/ci.yml)
 [![Rust](https://img.shields.io/badge/rust-1.78%2B-orange.svg)](https://www.rust-lang.org)
-[![Platform: Windows](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/anyfile-convert/anyfile-convert/releases)
+[![Platform: Windows](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/anyfile-converter/Anyfile-Converter-windows/releases)
 
-> **Status: 🚧 Active Development — v0.1.0 not yet released**
+> **Status: 🚧 Active Development — v0.1.0 (Developer Preview)**
 
 </div>
 
 ---
 
-## What is AnyFile Convert?
+## 🚀 What is AnyFile Convert?
 
-AnyFile Convert processes your files **entirely on your device**. No uploads. No accounts. No internet required.
+AnyFile Convert is a powerful, privacy-first desktop application designed to handle all your daily file operations. By processing files **100% locally** on your device, it ensures your sensitive data never leaves your computer. 
 
-It is a single application for common file operations that normal users need every day:
+Whether you need a **free image converter, offline PDF merger, or video audio extractor**, AnyFile Convert is your all-in-one productivity toolbox for Windows.
 
 - Convert images between formats
 - Merge and split PDFs
@@ -155,21 +157,13 @@ Good first issues are labelled [`good first issue`](https://github.com/anyfile-c
 
 ---
 
-## Privacy
+## 🔒 Privacy
 
 Your files **never leave your device**. See **[PRIVACY.md](PRIVACY.md)** for the full privacy statement.
 
 ---
 
-## Security
-
-To report a security vulnerability, see **[SECURITY.md](SECURITY.md)**.
-
-Do **not** open a public GitHub issue for security vulnerabilities.
-
----
-
-## License
+## 📜 License
 
 AnyFile Convert is licensed under the **GNU General Public License v3.0 or later**.
 
