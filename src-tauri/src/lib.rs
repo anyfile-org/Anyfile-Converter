@@ -129,10 +129,7 @@ pub fn run() {
                                         category: "tool".to_string(),
                                         operation: "job".to_string(),
                                         platform: "windows".to_string(),
-                                        app_version: app_handle
-                                            .package_info()
-                                            .version
-                                            .to_string(),
+                                        app_version: app_handle.package_info().version.to_string(),
                                         timestamp: SystemTime::now()
                                             .duration_since(UNIX_EPOCH)
                                             .unwrap()

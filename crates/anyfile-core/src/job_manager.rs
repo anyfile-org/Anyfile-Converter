@@ -91,7 +91,6 @@ impl JobManager {
         }
     }
 
-
     /// Submit a new job request.
     ///
     /// Returns the [`JobId`] immediately. Processing happens asynchronously.

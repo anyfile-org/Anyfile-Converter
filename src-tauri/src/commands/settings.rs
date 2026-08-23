@@ -38,10 +38,9 @@ pub async fn get_settings(
     if !path.exists() {
         return Ok(AppSettings::default());
     }
-    let data = std::fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read settings: {e}"))?;
-    serde_json::from_str::<AppSettings>(&data)
-        .map_err(|e| format!("Failed to parse settings: {e}"))
+    let data =
+        std::fs::read_to_string(&path).map_err(|e| format!("Failed to read settings: {e}"))?;
+    serde_json::from_str::<AppSettings>(&data).map_err(|e| format!("Failed to parse settings: {e}"))
 }
 
 /// Save settings to disk.
@@ -59,6 +58,5 @@ pub async fn save_settings(
     }
     let json = serde_json::to_string_pretty(&settings)
         .map_err(|e| format!("Failed to serialize settings: {e}"))?;
-    std::fs::write(&path, json)
-        .map_err(|e| format!("Failed to write settings: {e}"))
+    std::fs::write(&path, json).map_err(|e| format!("Failed to write settings: {e}"))
 }
