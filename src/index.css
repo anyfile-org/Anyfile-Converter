@@ -127,7 +127,7 @@ a:hover {
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--bg-surface);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
 }
@@ -139,7 +139,7 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(to right, #60a5fa, #a78bfa);
+  background: linear-gradient(to right, var(--primary-accent), var(--secondary-accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -168,7 +168,7 @@ a:hover {
 }
 
 .nav-link.active {
-  background: rgba(59, 130, 246, 0.15);
+  background: rgba(239, 68, 68, 0.15);
   color: var(--primary-accent-hover);
   border-left: 3px solid var(--primary-accent);
 }
@@ -186,7 +186,7 @@ a:hover {
   align-items: center;
   padding: 0 2rem;
   border-bottom: 1px solid var(--border-light);
-  background: rgba(15, 23, 42, 0.5);
+  background: var(--bg-surface);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
 }

@@ -10,10 +10,10 @@ export default function About() {
 
       <div className="glass-panel p-8" style={{ padding: '2rem' }}>
         <div className="text-center mb-8" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem', background: 'linear-gradient(to right, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem', background: 'linear-gradient(to right, var(--primary-accent), var(--secondary-accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             AnyFile Convert
           </h2>
-          <p className="text-muted" style={{ fontSize: '1.1rem' }}>v0.1.0 (Developer Preview)</p>
+          <p className="text-muted" style={{ fontSize: '1.1rem' }}>v1.0.0 (First Public Release)</p>
         </div>
 
         <div className="grid gap-6 mb-8" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
@@ -55,7 +55,7 @@ export default function About() {
         </div>
 
         <div className="mt-8 text-center" style={{ marginTop: '2rem', textAlign: 'center' }}>
-          <a href="https://github.com/anyfile-convert/anyfile-convert" target="_blank" rel="noreferrer" className="btn btn-secondary inline-flex items-center gap-2">
+          <a href="https://github.com/anyfile-converter/Anyfile-Converter" target="_blank" rel="noreferrer" className="btn btn-secondary inline-flex items-center gap-2">
             <ExternalLink size={18} />
             View on GitHub
           </a>

@@ -6,6 +6,8 @@ import { jobsService } from '../services/jobs';
 import { ToolMetadata } from '../types/tool';
 import { Play, Settings2, X, AlertCircle } from 'lucide-react';
 
+let hasProcessedStartupArgs = false;
+
 export default function Home() {
   const navigate = useNavigate();
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
@@ -17,6 +19,9 @@ export default function Home() {
   useEffect(() => {
     // Check if app was launched via Windows Explorer Context Menu
     const checkStartupArgs = async () => {
+      if (hasProcessedStartupArgs) return;
+      hasProcessedStartupArgs = true;
+      
       try {
         const { invoke } = await import('@tauri-apps/api/core');
         const args = await invoke<{ file: string | null, tool: string | null }>('get_startup_args');

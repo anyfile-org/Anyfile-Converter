@@ -6,6 +6,9 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "dialog:default"
+    "opener:allow-open-path",
+    "dialog:default",
+    "updater:default",
+    "process:default"
   ]
 }
