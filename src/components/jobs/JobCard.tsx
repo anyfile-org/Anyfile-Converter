@@ -3,6 +3,17 @@ import { Job } from '../../types/job';
 import { useJobStore } from '../../stores/jobStore';
 import { CheckCircle, XCircle, Clock, PlayCircle, X, FolderOpen, AlertTriangle } from 'lucide-react';
 
+const TOOL_NAMES: Record<string, string> = {
+  'image.jpg_to_png': 'Convert JPG to PNG',
+  'image.png_to_jpg': 'Convert PNG to JPG',
+  'image.compress': 'Compress Image',
+  'pdf.merge': 'Merge PDFs',
+  'pdf.split': 'Split PDF',
+  'archive.create_zip': 'Create ZIP',
+  'archive.extract_zip': 'Extract ZIP',
+  'video.extract_audio': 'Extract Audio'
+};
+
 interface JobCardProps {
   job: Job;
 }
@@ -52,7 +63,9 @@ export default function JobCard({ job }: JobCardProps) {
         <div className="flex items-center gap-3" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {getStatusIcon()}
           <div>
-            <h4 style={{ fontWeight: 600, fontSize: '1.1rem', margin: 0 }}>{job.tool_id}</h4>
+            <h4 style={{ fontWeight: 600, fontSize: '1.1rem', margin: 0 }}>
+              {TOOL_NAMES[job.tool_id] || job.tool_id}
+            </h4>
             <div className="text-muted" style={{ fontSize: '0.85rem' }}>
               {job.input_files.length} file{job.input_files.length !== 1 ? 's' : ''}
               {job.started_at && ` • Started at ${new Date(job.started_at).toLocaleTimeString()}`}

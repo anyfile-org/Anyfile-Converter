@@ -16,19 +16,33 @@ export default function Home() {
 
   useEffect(() => {
     // Check if app was launched via Windows Explorer Context Menu
-    const checkStartupFile = async () => {
+    const checkStartupArgs = async () => {
       try {
         const { invoke } = await import('@tauri-apps/api/core');
-        const file = await invoke<string | null>('get_startup_file');
-        if (file) {
-          handleFilesSelected([file]);
+        const args = await invoke<{ file: string | null, tool: string | null }>('get_startup_args');
+        
+        if (args.file && args.tool) {
+          // Instantly submit and navigate
+          await jobsService.submit({
+            tool_id: args.tool,
+            input_files: [args.file],
+            output_config: {
+              directory: "",
+              overwrite: false,
+              naming: "same_name_new_extension"
+            },
+            options: {}
+          });
+          navigate('/jobs');
+        } else if (args.file) {
+          handleFilesSelected([args.file]);
         }
       } catch (err) {
-        console.error("Failed to check startup file:", err);
+        console.error("Failed to check startup args:", err);
       }
     };
-    checkStartupFile();
-  }, []);
+    checkStartupArgs();
+  }, [navigate]);
 
   // Helper to get extension from path
   const getExtension = (path: string) => {

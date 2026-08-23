@@ -64,7 +64,7 @@ pub fn run() {
             commands::tools::tools_for_extension,
             commands::settings::get_settings,
             commands::settings::save_settings,
-            get_startup_file,
+            get_startup_args,
         ])
         .setup(|app| {
             // Register Windows context menu (silently ignore errors if not admin/supported)
@@ -137,14 +137,26 @@ pub fn run() {
         .expect("Failed to run AnyFile Convert");
 }
 
+#[derive(serde::Serialize)]
+struct StartupArgs {
+    file: Option<String>,
+    tool: Option<String>,
+}
+
 #[tauri::command]
-fn get_startup_file() -> Option<String> {
+fn get_startup_args() -> StartupArgs {
     let args: Vec<String> = std::env::args().collect();
-    // Look for "--file <path>"
+    let mut file = None;
+    let mut tool = None;
+    
     for i in 0..args.len() {
         if args[i] == "--file" && i + 1 < args.len() {
-            return Some(args[i + 1].clone());
+            file = Some(args[i + 1].clone());
+        }
+        if args[i] == "--tool" && i + 1 < args.len() {
+            tool = Some(args[i + 1].clone());
         }
     }
-    None
+    
+    StartupArgs { file, tool }
 }

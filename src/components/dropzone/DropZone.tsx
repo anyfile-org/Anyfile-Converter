@@ -1,4 +1,4 @@
-import { useState, DragEvent } from 'react';
+import { useState, useEffect, DragEvent } from 'react';
 import { UploadCloud, Plus } from 'lucide-react';
 
 interface DropZoneProps {
@@ -16,25 +16,55 @@ export default function DropZone({ onFilesSelected }: DropZoneProps) {
   // Note: V0.1 we can use tauri dialog to pick files if drag and drop is complex
   // but let's implement standard HTML drag and drop UI with a click-to-pick fallback.
 
+  useEffect(() => {
+    let unlistenDrop: (() => void) | undefined;
+    let unlistenHover: (() => void) | undefined;
+    let unlistenCancel: (() => void) | undefined;
+
+    const setupListeners = async () => {
+      try {
+        const { listen } = await import('@tauri-apps/api/event');
+        
+        // In Tauri V2, file drop events are natively emitted
+        unlistenDrop = await listen<{ paths: string[] }>('tauri://drag-drop', (event) => {
+          setIsDragging(false);
+          if (event.payload.paths && event.payload.paths.length > 0) {
+            onFilesSelected(event.payload.paths);
+          }
+        });
+
+        unlistenHover = await listen('tauri://drag-enter', () => {
+          setIsDragging(true);
+        });
+
+        unlistenCancel = await listen('tauri://drag-leave', () => {
+          setIsDragging(false);
+        });
+      } catch (err) {
+        console.error("Failed to setup drag and drop listeners:", err);
+      }
+    };
+
+    setupListeners();
+
+    return () => {
+      if (unlistenDrop) unlistenDrop();
+      if (unlistenHover) unlistenHover();
+      if (unlistenCancel) unlistenCancel();
+    };
+  }, [onFilesSelected]);
+
+  // Keep HTML5 handlers to prevent default browser behavior
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragging(true);
   };
 
   const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragging(false);
   };
 
   const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragging(false);
-    
-    // In a real Tauri app, file drop paths come via Tauri events `tauri://file-drop`
-    // HTML5 drop events only give us File objects (which don't have absolute paths).
-    // However, Tauri automatically maps file drops to the webview if configured,
-    // or we listen to 'tauri://file-drop'. For this component, we rely on the parent
-    // or a global listener to handle native drops, OR we use a file picker.
   };
 
   const openFilePicker = async () => {
