@@ -11,6 +11,7 @@
 
 mod commands;
 pub mod analytics;
+pub mod registry;
 
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -63,8 +64,14 @@ pub fn run() {
             commands::tools::tools_for_extension,
             commands::settings::get_settings,
             commands::settings::save_settings,
+            get_startup_file,
         ])
         .setup(|app| {
+            // Register Windows context menu (silently ignore errors if not admin/supported)
+            if let Err(e) = registry::register_context_menu() {
+                tracing::warn!("Failed to register context menu: {}", e);
+            }
+
             // Setup Analytics Queue
             let app_data_dir = app.path().app_data_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
             if !app_data_dir.exists() {
@@ -120,4 +127,16 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("Failed to run AnyFile Convert");
+}
+
+#[tauri::command]
+fn get_startup_file() -> Option<String> {
+    let args: Vec<String> = std::env::args().collect();
+    // Look for "--file <path>"
+    for i in 0..args.len() {
+        if args[i] == "--file" && i + 1 < args.len() {
+            return Some(args[i + 1].clone());
+        }
+    }
+    None
 }

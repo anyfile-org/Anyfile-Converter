@@ -109,21 +109,12 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Analytics Toggle (V0.2) */}
+        {/* Analytics */}
         <div>
           <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Anonymous Analytics</label>
           <div className="text-muted" style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-            Help us improve by sending anonymous usage data. No file names or paths are ever sent.
+            To help improve AnyFile Convert, basic anonymous usage data is automatically sent. No file names, paths, or personal data are ever collected.
           </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-            <input 
-              type="checkbox" 
-              checked={localSettings.analytics_enabled}
-              onChange={(e) => setLocalSettings({ ...localSettings, analytics_enabled: e.target.checked })}
-              style={{ width: '1.2rem', height: '1.2rem' }}
-            />
-            <span>Enable anonymous analytics</span>
-          </label>
         </div>
 
         <div className="mt-4 pt-4 border-t border-light flex justify-end" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-light)', display: 'flex', justifyContent: 'flex-end' }}>

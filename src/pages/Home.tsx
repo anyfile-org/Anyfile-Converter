@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DropZone from '../components/dropzone/DropZone';
 import { toolsService } from '../services/tools';
@@ -13,6 +13,22 @@ export default function Home() {
   const [selectedToolId, setSelectedToolId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check if app was launched via Windows Explorer Context Menu
+    const checkStartupFile = async () => {
+      try {
+        const { invoke } = await import('@tauri-apps/api/core');
+        const file = await invoke<string | null>('get_startup_file');
+        if (file) {
+          handleFilesSelected([file]);
+        }
+      } catch (err) {
+        console.error("Failed to check startup file:", err);
+      }
+    };
+    checkStartupFile();
+  }, []);
 
   // Helper to get extension from path
   const getExtension = (path: string) => {

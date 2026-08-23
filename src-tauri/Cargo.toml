@@ -32,3 +32,4 @@ anyfile-tools   = { workspace = true }
 anyfile-engines = { workspace = true }
 anyfile-fs      = { workspace = true }
 tauri-plugin-dialog = "2.7.2"
+winreg = "0.56.0"
