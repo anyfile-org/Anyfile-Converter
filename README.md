@@ -7,9 +7,9 @@
 *Securely convert, merge, compress, and process your images, PDFs, videos, and archives entirely on your local machine.*
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![CI](https://github.com/anyfile-converter/Anyfile-Converter-windows/actions/workflows/ci.yml/badge.svg)](https://github.com/anyfile-converter/Anyfile-Converter-windows/actions/workflows/ci.yml)
+[![CI](https://github.com/anyfile-converter/Anyfile-Converter/actions/workflows/ci.yml/badge.svg)](https://github.com/anyfile-converter/Anyfile-Converter/actions/workflows/ci.yml)
 [![Rust](https://img.shields.io/badge/rust-1.78%2B-orange.svg)](https://www.rust-lang.org)
-[![Platform: Windows](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/anyfile-converter/Anyfile-Converter-windows/releases)
+[![Platform: Windows](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/anyfile-converter/Anyfile-Converter/releases)
 
 > **Status: 🚧 Active Development — v0.1.0 (Developer Preview)**
 
@@ -96,7 +96,7 @@ Most file conversion tools are web apps that upload your files to third-party se
 > **Note:** v0.1.0 is not yet released. This section will be updated when the first installer is available.
 
 **Windows:**
-1. Download `AnyFileConvert-Setup.exe` from the [Releases](https://github.com/anyfile-convert/anyfile-convert/releases) page
+1. Download `AnyFile Convert_0.1.1_x64-setup.exe` from the [Releases](https://github.com/anyfile-converter/Anyfile-Converter/releases) page
 2. Run the installer
 3. AnyFile Convert is ready — no account, no activation
 
