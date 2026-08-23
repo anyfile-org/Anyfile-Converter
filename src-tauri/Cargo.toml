@@ -24,6 +24,7 @@ tokio              = { workspace = true }
 tracing            = { workspace = true }
 tracing-subscriber = { workspace = true }
 reqwest            = { version = "0.12", features = ["json", "rustls-tls", "default-tls"] }
+uuid               = { workspace = true }
 
 # Our crates
 anyfile-core    = { workspace = true }

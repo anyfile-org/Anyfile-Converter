@@ -22,14 +22,26 @@ pub struct AnalyticsEvent {
 
 pub struct AnalyticsQueue {
     file_path: PathBuf,
+    client_id: String,
     lock: Arc<Mutex<()>>, // Prevent concurrent file access between push and flush
 }
 
 impl AnalyticsQueue {
     pub fn new(app_data_dir: PathBuf) -> Self {
         let file_path = app_data_dir.join("analytics.jsonl");
+        let client_id_path = app_data_dir.join("client_id.txt");
+        
+        let client_id = if client_id_path.exists() {
+            std::fs::read_to_string(&client_id_path).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string())
+        } else {
+            let id = uuid::Uuid::new_v4().to_string();
+            let _ = std::fs::write(&client_id_path, &id);
+            id
+        };
+
         Self {
             file_path,
+            client_id,
             lock: Arc::new(Mutex::new(())),
         }
     }
@@ -76,9 +88,20 @@ impl AnalyticsQueue {
         if batch.is_empty() {
             return; // Nothing to do
         }
+        
+        #[derive(Serialize)]
+        struct Payload<'a> {
+            client_id: &'a str,
+            events: &'a [AnalyticsEvent],
+        }
+        
+        let payload = Payload {
+            client_id: &self.client_id,
+            events: &batch,
+        };
 
         let client = reqwest::Client::new();
-        match client.post(ANALYTICS_ENDPOINT).json(&batch).send().await {
+        match client.post(ANALYTICS_ENDPOINT).json(&payload).send().await {
             Ok(res) if res.status().is_success() => {
                 info!("Successfully uploaded {} analytics events", batch.len());
                 // Success: clear the file

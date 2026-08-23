@@ -21,28 +21,32 @@ The Windows desktop application will send an array of JSON event objects to your
 - **Authentication**: None required for ingestion (this is public, anonymous telemetry). **However**, you must implement basic rate limiting (e.g., by IP) to prevent spam/DDoS.
 
 ### Payload Structure
-The payload will ALWAYS be a JSON Array of objects (because the desktop app batches offline events).
+The payload will ALWAYS be a JSON Object containing the unique `client_id` (a UUID representing the installation) and an array of `events`.
 
 ```json
-[
-  {
-    "event": "operation_completed",
-    "category": "tool",
-    "operation": "jpg_to_png",
-    "platform": "windows",
-    "app_version": "0.1.0",
-    "timestamp": 1692801234
-  },
-  {
-    "event": "operation_completed",
-    "category": "tool",
-    "operation": "merge_pdf",
-    "platform": "windows",
-    "app_version": "0.1.0",
-    "timestamp": 1692801500
-  }
-]
+{
+  "client_id": "550e8400-e29b-41d4-a716-446655440000",
+  "events": [
+    {
+      "event": "operation_completed",
+      "category": "tool",
+      "operation": "jpg_to_png",
+      "platform": "windows",
+      "app_version": "0.1.0",
+      "timestamp": 1692801234
+    }
+  ]
+}
 ```
+
+### 🛑 Security & Anti-Spam (CRITICAL)
+Because the app is fully offline and open-source, the API endpoint will be visible to the public. Malicious actors could try to spam the endpoint with fake data. **Do NOT rely on a static API key** (it will be extracted from the binary).
+
+Instead, implement these protections:
+1. **IP Rate Limiting**: Limit ingestion to ~1 request per hour per IP. The app batches events offline and only flushes every 5+ minutes, so legitimate traffic is very low-frequency.
+2. **Client ID Throttling**: The `client_id` is persistent per installation. Reject requests if a single `client_id` submits more than 100 events a day.
+3. **Payload Validation**: Strictly validate the `operation` and `category` fields against a known whitelist. Reject absurd `timestamp` values (e.g., in the future or years in the past).
+4. **WAF (Web Application Firewall)**: Place the API behind Cloudflare to absorb basic DDoS attacks automatically.
 
 ### Response Expected
 - **Success**: Return HTTP `200 OK` (The desktop app will delete its local queue upon seeing this).
