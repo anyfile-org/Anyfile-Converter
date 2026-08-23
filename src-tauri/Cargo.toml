@@ -5,7 +5,7 @@ edition     = "2021"
 description = "AnyFile Convert — privacy-first, offline-first file toolbox"
 authors     = ["AnyFile Convert Contributors"]
 license     = "GPL-3.0-or-later"
-repository  = "https://github.com/anyfile-convert/anyfile-convert"
+repository  = "https://github.com/anyfile-converter/Anyfile-Converter"
 
 # lib.rs is required for Tauri 2.x mobile/app handle access
 [lib]

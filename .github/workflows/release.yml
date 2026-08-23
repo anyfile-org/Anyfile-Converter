@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger this workflow when pushing a tag like v0.1.0
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: windows-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+          
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        
+      - name: Install Frontend Dependencies
+        run: npm ci
+        
+      - name: Build and Upload Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'AnyFile Convert ${{ github.ref_name }}'
+          releaseBody: 'Download the installer below to start using AnyFile Convert on Windows.'
+          releaseDraft: true
+          prerelease: false
