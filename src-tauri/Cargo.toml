@@ -1,6 +1,6 @@
 [package]
 name        = "anyfile-convert"
-version     = "0.1.0"
+version     = "0.1.1"
 edition     = "2021"
 description = "AnyFile Convert — privacy-first, offline-first file toolbox"
 authors     = ["AnyFile Convert Contributors"]

@@ -82,7 +82,7 @@ fn register_for_extensions(
             if let Ok((sub_shell, _)) = shell_key.create_subkey("shell") {
                 for (cmd_id, label, tool_id) in commands {
                     if let Ok((cmd_key, _)) = sub_shell.create_subkey(cmd_id) {
-                        let _ = cmd_key.set_value("MUIVerb", &*label);
+                        let _ = cmd_key.set_value("MUIVerb", label);
                         if let Ok((command_key, _)) = cmd_key.create_subkey("command") {
                             let command_string = format!(
                                 "\"{}\" --file \"%1\" --tool \"{}\"",
