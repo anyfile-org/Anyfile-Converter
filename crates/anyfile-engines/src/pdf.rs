@@ -43,7 +43,8 @@ impl PdfEngine {
             // Copy all pages from doc into base
             let pages = doc.get_pages();
             for (page_num, page_id) in pages {
-                let page_obj = doc.get_object(page_id)
+                let page_obj = doc
+                    .get_object(page_id)
                     .map_err(|e| EngineError::Pdf(e.to_string()))?
                     .clone();
                 let new_id = base.add_object(page_obj);

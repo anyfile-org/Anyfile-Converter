@@ -5,8 +5,7 @@
 //! - Extraction limits total entry count and uncompressed size
 
 use std::{
-    fs,
-    io,
+    fs, io,
     path::{Component, Path, PathBuf},
 };
 
@@ -40,8 +39,8 @@ impl ArchiveEngine {
 
         let file = fs::File::create(output)?;
         let mut zip = ZipWriter::new(file);
-        let options = SimpleFileOptions::default()
-            .compression_method(zip::CompressionMethod::Deflated);
+        let options =
+            SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
         for input_path in inputs {
             let file_name = input_path
@@ -61,7 +60,8 @@ impl ArchiveEngine {
             io::copy(&mut f, &mut zip)?;
         }
 
-        zip.finish().map_err(|e| EngineError::Archive(e.to_string()))?;
+        zip.finish()
+            .map_err(|e| EngineError::Archive(e.to_string()))?;
         Ok(())
     }
 
@@ -69,7 +69,11 @@ impl ArchiveEngine {
     ///
     /// Security: refuses to extract entries that would write outside `output_dir`
     /// (zip-slip protection). Enforces entry count and size limits.
-    pub fn extract_zip(&self, input: &Path, output_dir: &Path) -> Result<Vec<PathBuf>, EngineError> {
+    pub fn extract_zip(
+        &self,
+        input: &Path,
+        output_dir: &Path,
+    ) -> Result<Vec<PathBuf>, EngineError> {
         debug!(
             input = %input.display(),
             output_dir = %output_dir.display(),
@@ -79,8 +83,7 @@ impl ArchiveEngine {
         fs::create_dir_all(output_dir)?;
 
         let file = fs::File::open(input)?;
-        let mut archive =
-            ZipArchive::new(file).map_err(|e| EngineError::Archive(e.to_string()))?;
+        let mut archive = ZipArchive::new(file).map_err(|e| EngineError::Archive(e.to_string()))?;
 
         let entry_count = archive.len();
         if entry_count > MAX_ENTRIES {

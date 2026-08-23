@@ -17,6 +17,12 @@ pub struct CreateZip {
     engine: ArchiveEngine,
 }
 
+impl Default for CreateZip {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CreateZip {
     pub fn new() -> Self {
         Self {
@@ -94,6 +100,12 @@ pub struct ExtractZip {
     engine: ArchiveEngine,
 }
 
+impl Default for ExtractZip {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ExtractZip {
     pub fn new() -> Self {
         Self {
@@ -122,7 +134,11 @@ impl Tool for ExtractZip {
             return Err(ToolError::NoInputFiles);
         }
         for path in &request.input_files {
-            let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+            let ext = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("")
+                .to_lowercase();
             if ext != "zip" {
                 return Err(ToolError::UnsupportedFormat(format!(
                     "Expected ZIP, got: .{ext}"
@@ -154,7 +170,10 @@ impl Tool for ExtractZip {
                 .map_err(|e| ToolError::ProcessingFailed(e.to_string()))?;
 
             // Create a named subdirectory for each archive's contents
-            let stem = validated.file_stem().and_then(|s| s.to_str()).unwrap_or("extracted");
+            let stem = validated
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("extracted");
             let out_dir = request.output_config.directory.join(stem);
 
             match self.engine.extract_zip(&validated, &out_dir) {

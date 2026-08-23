@@ -10,6 +10,7 @@ use crate::AppState;
 
 /// User-configurable application settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct AppSettings {
     /// Default output directory. None = same directory as input.
     pub default_output_dir: Option<String>,
@@ -19,15 +20,6 @@ pub struct AppSettings {
     pub analytics_enabled: bool,
 }
 
-impl Default for AppSettings {
-    fn default() -> Self {
-        Self {
-            default_output_dir: None,
-            ffmpeg_path: None,
-            analytics_enabled: false,  // OFF by default — privacy first
-        }
-    }
-}
 
 /// Load settings from disk. Returns defaults if no settings file exists yet.
 #[tauri::command]

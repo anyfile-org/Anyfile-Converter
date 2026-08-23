@@ -12,9 +12,9 @@ use crate::FsError;
 /// Returns the canonicalized absolute path on success.
 pub fn validate_input_path(path: &Path) -> Result<PathBuf, FsError> {
     // Canonicalize resolves `..` and symlinks — catches traversal attempts
-    let canonical = path.canonicalize().map_err(|_| {
-        FsError::NotFound(path.display().to_string())
-    })?;
+    let canonical = path
+        .canonicalize()
+        .map_err(|_| FsError::NotFound(path.display().to_string()))?;
 
     if !canonical.exists() {
         return Err(FsError::NotFound(canonical.display().to_string()));
@@ -34,9 +34,8 @@ pub fn validate_or_create_output_dir(path: &Path) -> Result<PathBuf, FsError> {
         return Err(FsError::NotADirectory(path.display().to_string()));
     }
     if !path.exists() {
-        std::fs::create_dir_all(path).map_err(|e| {
-            FsError::OutputDirectoryCreation(format!("{}: {}", path.display(), e))
-        })?;
+        std::fs::create_dir_all(path)
+            .map_err(|e| FsError::OutputDirectoryCreation(format!("{}: {}", path.display(), e)))?;
     }
     path.canonicalize().map_err(FsError::Io)
 }

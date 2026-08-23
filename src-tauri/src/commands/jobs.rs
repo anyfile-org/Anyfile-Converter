@@ -11,10 +11,7 @@ use crate::AppState;
 /// Submit a new job. Returns the JobId immediately.
 /// The frontend receives progress via "job-event" Tauri events — no polling.
 #[tauri::command]
-pub async fn submit_job(
-    state: State<'_, AppState>,
-    request: JobRequest,
-) -> Result<JobId, String> {
+pub async fn submit_job(state: State<'_, AppState>, request: JobRequest) -> Result<JobId, String> {
     state
         .job_manager
         .submit(request)

@@ -22,11 +22,19 @@ struct ExtractAudioOptions {
     format: String,
 }
 
-fn default_audio_format() -> String { "mp3".to_string() }
+fn default_audio_format() -> String {
+    "mp3".to_string()
+}
 
 pub struct ExtractAudio {
     meta: ToolMetadata,
     engine: FfmpegEngine,
+}
+
+impl Default for ExtractAudio {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ExtractAudio {
@@ -35,7 +43,8 @@ impl ExtractAudio {
             meta: ToolMetadata {
                 id: "video.extract_audio".to_string(),
                 name: "Extract Audio".to_string(),
-                description: "Extract the audio track from a video file as MP3 or other formats.".to_string(),
+                description: "Extract the audio track from a video file as MP3 or other formats."
+                    .to_string(),
                 category: ToolCategory::Video,
                 input_extensions: vec![
                     "mp4".to_string(),
@@ -81,9 +90,10 @@ impl Tool for ExtractAudio {
         progress: ProgressReporter,
         cancel: CancellationToken,
     ) -> Result<JobOutput, ToolError> {
-        let opts: ExtractAudioOptions =
-            serde_json::from_value(request.options.clone())
-                .unwrap_or_else(|_| ExtractAudioOptions { format: "mp3".to_string() });
+        let opts: ExtractAudioOptions = serde_json::from_value(request.options.clone())
+            .unwrap_or_else(|_| ExtractAudioOptions {
+                format: "mp3".to_string(),
+            });
 
         let fs_config = FsOutputConfig::from(&request.output_config);
         let total = request.input_files.len();
@@ -107,10 +117,10 @@ impl Tool for ExtractAudio {
             // Build FFmpeg args: extract audio, no video stream
             // -i <input> -vn -acodec libmp3lame <output>
             let args: Vec<OsString> = vec![
-                "-y".into(),                           // overwrite without asking
+                "-y".into(), // overwrite without asking
                 "-i".into(),
                 validated.as_os_str().to_os_string(),
-                "-vn".into(),                          // no video
+                "-vn".into(), // no video
                 output_path.path.as_os_str().to_os_string(),
             ];
 
@@ -123,12 +133,14 @@ impl Tool for ExtractAudio {
             tokio::spawn(async move {
                 while let Some(pct) = progress_rx.recv().await {
                     // Scale file progress to overall progress
-                    let overall = ((i_clone as f64 + pct as f64 / 100.0) / total_clone as f64 * 100.0) as u8;
+                    let overall =
+                        ((i_clone as f64 + pct as f64 / 100.0) / total_clone as f64 * 100.0) as u8;
                     reporter_clone.set_percent(overall, None);
                 }
             });
 
-            let result = self.engine
+            let result = self
+                .engine
                 .run(args, None, Some(progress_tx), cancel.clone())
                 .await
                 .map_err(|e| {
@@ -157,6 +169,9 @@ impl Tool for ExtractAudio {
         }
 
         progress.set_percent(100, None);
-        Ok(JobOutput { output_files, per_file_errors })
+        Ok(JobOutput {
+            output_files,
+            per_file_errors,
+        })
     }
 }

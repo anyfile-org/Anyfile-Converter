@@ -4,7 +4,7 @@ use anyfile_core::{
     tool::{EngineKind, JobOutput, ToolCategory, ToolError, ToolMetadata},
     Tool,
 };
-use anyfile_engines::image::{ImageEngine};
+use anyfile_engines::image::ImageEngine;
 use anyfile_fs::{validate_input_path, OutputConfig as FsOutputConfig, OutputPath};
 use image::ImageFormat;
 use tokio_util::sync::CancellationToken;
@@ -16,6 +16,12 @@ use tokio_util::sync::CancellationToken;
 pub struct JpgToPng {
     meta: ToolMetadata,
     engine: ImageEngine,
+}
+
+impl Default for JpgToPng {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl JpgToPng {
@@ -46,7 +52,11 @@ impl Tool for JpgToPng {
             return Err(ToolError::NoInputFiles);
         }
         for path in &request.input_files {
-            let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+            let ext = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("")
+                .to_lowercase();
             if !matches!(ext.as_str(), "jpg" | "jpeg") {
                 return Err(ToolError::UnsupportedFormat(format!(
                     "Expected JPG/JPEG, got: .{ext}"
@@ -81,7 +91,10 @@ impl Tool for JpgToPng {
             let output_path = OutputPath::resolve(&fs_config, &validated, "png", i)
                 .map_err(|e| ToolError::OutputError(e.to_string()))?;
 
-            match self.engine.convert(&validated, &output_path.path, ImageFormat::Png) {
+            match self
+                .engine
+                .convert(&validated, &output_path.path, ImageFormat::Png)
+            {
                 Ok(()) => {
                     output_files.push(output_path.path.clone());
                     progress.file_done(&validated, true);
@@ -97,7 +110,10 @@ impl Tool for JpgToPng {
         }
 
         progress.set_percent(100, None);
-        Ok(JobOutput { output_files, per_file_errors })
+        Ok(JobOutput {
+            output_files,
+            per_file_errors,
+        })
     }
 }
 
@@ -110,13 +126,20 @@ pub struct PngToJpg {
     engine: ImageEngine,
 }
 
+impl Default for PngToJpg {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PngToJpg {
     pub fn new() -> Self {
         Self {
             meta: ToolMetadata {
                 id: "image.png_to_jpg".to_string(),
                 name: "Convert PNG → JPG".to_string(),
-                description: "Convert PNG images to JPEG format. Note: PNG transparency is lost.".to_string(),
+                description: "Convert PNG images to JPEG format. Note: PNG transparency is lost."
+                    .to_string(),
                 category: ToolCategory::Image,
                 input_extensions: vec!["png".to_string()],
                 output_extension: "jpg".to_string(),
@@ -138,7 +161,11 @@ impl Tool for PngToJpg {
             return Err(ToolError::NoInputFiles);
         }
         for path in &request.input_files {
-            let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+            let ext = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("")
+                .to_lowercase();
             if ext != "png" {
                 return Err(ToolError::UnsupportedFormat(format!(
                     "Expected PNG, got: .{ext}"
@@ -173,7 +200,10 @@ impl Tool for PngToJpg {
             let output_path = OutputPath::resolve(&fs_config, &validated, "jpg", i)
                 .map_err(|e| ToolError::OutputError(e.to_string()))?;
 
-            match self.engine.convert(&validated, &output_path.path, ImageFormat::Jpeg) {
+            match self
+                .engine
+                .convert(&validated, &output_path.path, ImageFormat::Jpeg)
+            {
                 Ok(()) => {
                     output_files.push(output_path.path.clone());
                     progress.file_done(&validated, true);
@@ -189,7 +219,10 @@ impl Tool for PngToJpg {
         }
 
         progress.set_percent(100, None);
-        Ok(JobOutput { output_files, per_file_errors })
+        Ok(JobOutput {
+            output_files,
+            per_file_errors,
+        })
     }
 }
 
@@ -205,11 +238,19 @@ struct CompressOptions {
     jpeg_quality: u8,
 }
 
-fn default_jpeg_quality() -> u8 { 75 }
+fn default_jpeg_quality() -> u8 {
+    75
+}
 
 pub struct ImageCompress {
     meta: ToolMetadata,
     engine: ImageEngine,
+}
+
+impl Default for ImageCompress {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ImageCompress {
@@ -240,7 +281,11 @@ impl Tool for ImageCompress {
             return Err(ToolError::NoInputFiles);
         }
         for path in &request.input_files {
-            let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+            let ext = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("")
+                .to_lowercase();
             if !matches!(ext.as_str(), "jpg" | "jpeg" | "png") {
                 return Err(ToolError::UnsupportedFormat(format!(
                     "Compress supports JPG and PNG, got: .{ext}"
@@ -259,9 +304,8 @@ impl Tool for ImageCompress {
         progress: ProgressReporter,
         cancel: CancellationToken,
     ) -> Result<JobOutput, ToolError> {
-        let opts: CompressOptions =
-            serde_json::from_value(request.options.clone())
-                .unwrap_or_else(|_| CompressOptions { jpeg_quality: 75 });
+        let opts: CompressOptions = serde_json::from_value(request.options.clone())
+            .unwrap_or(CompressOptions { jpeg_quality: 75 });
 
         let fs_config = FsOutputConfig::from(&request.output_config);
         let total = request.input_files.len();
@@ -279,18 +323,27 @@ impl Tool for ImageCompress {
             let validated = validate_input_path(input)
                 .map_err(|e| ToolError::ProcessingFailed(e.to_string()))?;
 
-            let ext = validated.extension().and_then(|e| e.to_str()).unwrap_or("jpg").to_lowercase();
+            let ext = validated
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("jpg")
+                .to_lowercase();
             let output_path = OutputPath::resolve(&fs_config, &validated, &ext, i)
                 .map_err(|e| ToolError::OutputError(e.to_string()))?;
 
             let result = match ext.as_str() {
-                "jpg" | "jpeg" => self.engine.compress_jpeg(&validated, &output_path.path, opts.jpeg_quality),
+                "jpg" | "jpeg" => {
+                    self.engine
+                        .compress_jpeg(&validated, &output_path.path, opts.jpeg_quality)
+                }
                 "png" => self.engine.compress_png(
                     &validated,
                     &output_path.path,
                     image::codecs::png::CompressionType::Best,
                 ),
-                _ => Err(anyfile_engines::EngineError::Image("Unsupported format".to_string())),
+                _ => Err(anyfile_engines::EngineError::Image(
+                    "Unsupported format".to_string(),
+                )),
             };
 
             match result {
@@ -309,7 +362,10 @@ impl Tool for ImageCompress {
         }
 
         progress.set_percent(100, None);
-        Ok(JobOutput { output_files, per_file_errors })
+        Ok(JobOutput {
+            output_files,
+            per_file_errors,
+        })
     }
 }
 

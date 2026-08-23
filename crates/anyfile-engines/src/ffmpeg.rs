@@ -47,7 +47,13 @@ impl FfmpegEngine {
     /// Detect FFmpeg from settings override → PATH → common locations.
     pub fn detect(settings_override: Option<&Path>) -> Self {
         let binary_path = settings_override
-            .and_then(|p| if p.exists() { Some(p.to_path_buf()) } else { None })
+            .and_then(|p| {
+                if p.exists() {
+                    Some(p.to_path_buf())
+                } else {
+                    None
+                }
+            })
             .or_else(find_ffmpeg_on_path)
             .or_else(find_ffmpeg_common_locations);
 
@@ -173,10 +179,7 @@ fn find_ffmpeg_common_locations() -> Option<PathBuf> {
         r"C:\Program Files\ffmpeg\bin\ffmpeg.exe",
         r"C:\Program Files (x86)\ffmpeg\bin\ffmpeg.exe",
     ];
-    candidates
-        .iter()
-        .map(PathBuf::from)
-        .find(|p| p.exists())
+    candidates.iter().map(PathBuf::from).find(|p| p.exists())
 }
 
 fn which_ffmpeg(name: &str) -> Option<PathBuf> {
@@ -195,9 +198,9 @@ fn which_ffmpeg(name: &str) -> Option<PathBuf> {
 /// Parse FFmpeg's `time=HH:MM:SS.ss` output into a 0–100 percentage.
 fn parse_ffmpeg_progress(line: &str, total: Duration) -> Option<u8> {
     // Look for "time=HH:MM:SS.ss"
-    let time_str = line.split_whitespace().find_map(|part| {
-        part.strip_prefix("time=")
-    })?;
+    let time_str = line
+        .split_whitespace()
+        .find_map(|part| part.strip_prefix("time="))?;
 
     let elapsed_secs = parse_ffmpeg_time(time_str)?;
     let total_secs = total.as_secs_f64();
@@ -235,7 +238,8 @@ mod tests {
     #[test]
     fn progress_percent_calculated() {
         let total = Duration::from_secs(100);
-        let line = "frame=  100 fps= 25 q=28.0 size=    256kB time=00:00:50.00 bitrate= 41.9kbits/s";
+        let line =
+            "frame=  100 fps= 25 q=28.0 size=    256kB time=00:00:50.00 bitrate= 41.9kbits/s";
         assert_eq!(parse_ffmpeg_progress(line, total), Some(50));
     }
 

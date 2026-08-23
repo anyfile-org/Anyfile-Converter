@@ -93,12 +93,10 @@ impl Default for ToolRegistry {
 mod tests {
     use super::*;
     use crate::{
-        job::{JobRequest, OutputConfig},
+        job::JobRequest,
         progress::ProgressReporter,
         tool::{EngineKind, JobOutput, ToolCategory, ToolError, ToolMetadata},
     };
-    use anyfile_fs::NamingPattern;
-    use std::path::PathBuf;
     use tokio_util::sync::CancellationToken;
 
     struct FakeTool {
@@ -119,7 +117,10 @@ mod tests {
             _: ProgressReporter,
             _: CancellationToken,
         ) -> Result<JobOutput, ToolError> {
-            Ok(JobOutput { output_files: vec![], per_file_errors: vec![] })
+            Ok(JobOutput {
+                output_files: vec![],
+                per_file_errors: vec![],
+            })
         }
     }
 

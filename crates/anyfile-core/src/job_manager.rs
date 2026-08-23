@@ -1,8 +1,4 @@
-use std::{
-    collections::HashMap,
-    sync::Arc,
-    time::Instant,
-};
+use std::{collections::HashMap, sync::Arc, time::Instant};
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -61,7 +57,7 @@ impl JobManager {
     pub fn new(registry: Arc<ToolRegistry>, max_concurrent: Option<usize>) -> Self {
         let concurrency = max_concurrent.unwrap_or_else(|| {
             let cpus = num_cpus::get();
-            (cpus / 2).max(1).min(4)
+            (cpus / 2).clamp(1, 4)
         });
 
         let (event_tx, _) = broadcast::channel(256);
@@ -152,7 +148,10 @@ impl JobManager {
             tokio::spawn(async move {
                 while let Some(update) = progress_rx.recv().await {
                     match update {
-                        ProgressUpdate::Percent { percent, current_file } => {
+                        ProgressUpdate::Percent {
+                            percent,
+                            current_file,
+                        } => {
                             if let Some(job_arc) = jobs_for_progress.read().await.get(&job_id) {
                                 let mut job = job_arc.write().await;
                                 job.progress.overall_percent = percent;
@@ -283,7 +282,7 @@ impl JobManager {
         for job_arc in jobs.values() {
             list.push(job_arc.read().await.clone());
         }
-        list.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        list.sort_by_key(|a| std::cmp::Reverse(a.created_at));
         list
     }
 

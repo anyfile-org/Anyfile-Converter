@@ -74,8 +74,12 @@ impl OutputPath {
         if !config.overwrite && path.exists() {
             let mut counter = 1u32;
             loop {
-                let stem_with_counter =
-                    format!("{}_{}.{}", path.file_stem().unwrap().to_string_lossy(), counter, output_extension);
+                let stem_with_counter = format!(
+                    "{}_{}.{}",
+                    path.file_stem().unwrap().to_string_lossy(),
+                    counter,
+                    output_extension
+                );
                 let candidate = config.directory.join(stem_with_counter);
                 if !candidate.exists() {
                     path = candidate;

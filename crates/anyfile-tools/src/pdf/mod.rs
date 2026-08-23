@@ -17,6 +17,12 @@ pub struct PdfMerge {
     engine: PdfEngine,
 }
 
+impl Default for PdfMerge {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PdfMerge {
     pub fn new() -> Self {
         Self {
@@ -47,7 +53,11 @@ impl Tool for PdfMerge {
             ));
         }
         for path in &request.input_files {
-            let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+            let ext = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("")
+                .to_lowercase();
             if ext != "pdf" {
                 return Err(ToolError::UnsupportedFormat(format!(
                     "Expected PDF, got: .{ext}"
@@ -120,6 +130,12 @@ pub struct PdfSplit {
     engine: PdfEngine,
 }
 
+impl Default for PdfSplit {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PdfSplit {
     pub fn new() -> Self {
         Self {
@@ -152,10 +168,12 @@ impl Tool for PdfSplit {
                 "PDF Split operates on one file at a time.".to_string(),
             ));
         }
-        let opts = serde_json::from_value::<SplitOptions>(request.options.clone())
-            .map_err(|_| ToolError::InvalidOptions(
-                "Split requires 'start_page' and 'end_page' options.".to_string(),
-            ))?;
+        let opts =
+            serde_json::from_value::<SplitOptions>(request.options.clone()).map_err(|_| {
+                ToolError::InvalidOptions(
+                    "Split requires 'start_page' and 'end_page' options.".to_string(),
+                )
+            })?;
         if opts.start_page < 1 || opts.end_page < opts.start_page {
             return Err(ToolError::InvalidOptions(
                 "start_page must be ≥ 1 and end_page must be ≥ start_page.".to_string(),
@@ -183,7 +201,10 @@ impl Tool for PdfSplit {
             .map_err(|e| ToolError::ProcessingFailed(e.to_string()))?;
 
         let _fs_config = FsOutputConfig::from(&request.output_config);
-        let stem = input.file_stem().and_then(|s| s.to_str()).unwrap_or("split");
+        let stem = input
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("split");
         let output_name = format!("{}_pages_{}_{}.pdf", stem, opts.start_page, opts.end_page);
         let output = request.output_config.directory.join(&output_name);
 

@@ -22,7 +22,9 @@ pub mod tool;
 
 // Convenient re-exports for crate consumers
 pub use error::CoreError;
-pub use job::{Job, JobError, JobId, JobProgress, JobRequest, JobResult, JobState, OutputConfig, PerFileError};
+pub use job::{
+    Job, JobError, JobId, JobProgress, JobRequest, JobResult, JobState, OutputConfig, PerFileError,
+};
 pub use job_manager::{JobEvent, JobManager};
 pub use progress::ProgressReporter;
 pub use registry::ToolRegistry;

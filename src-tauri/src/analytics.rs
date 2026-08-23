@@ -1,7 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
-use serde::{Deserialize, Serialize};
 use tokio::fs::{self, OpenOptions};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::sync::Mutex;
@@ -30,9 +30,10 @@ impl AnalyticsQueue {
     pub fn new(app_data_dir: PathBuf) -> Self {
         let file_path = app_data_dir.join("analytics.jsonl");
         let client_id_path = app_data_dir.join("client_id.txt");
-        
+
         let client_id = if client_id_path.exists() {
-            std::fs::read_to_string(&client_id_path).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string())
+            std::fs::read_to_string(&client_id_path)
+                .unwrap_or_else(|_| uuid::Uuid::new_v4().to_string())
         } else {
             let id = uuid::Uuid::new_v4().to_string();
             let _ = std::fs::write(&client_id_path, &id);
@@ -49,16 +50,16 @@ impl AnalyticsQueue {
     /// Appends an event to the local file queue
     pub async fn push(&self, event: AnalyticsEvent) -> Result<(), Box<dyn std::error::Error>> {
         let _guard = self.lock.lock().await;
-        
+
         let mut file = OpenOptions::new()
             .create(true)
             .append(true)
             .open(&self.file_path)
             .await?;
-            
+
         let mut line = serde_json::to_string(&event)?;
         line.push('\n');
-        
+
         file.write_all(line.as_bytes()).await?;
         Ok(())
     }
@@ -66,7 +67,7 @@ impl AnalyticsQueue {
     /// Reads all queued events, sends them, and clears the queue on success
     pub async fn flush(&self) {
         let _guard = self.lock.lock().await;
-        
+
         if !self.file_path.exists() {
             return;
         }
@@ -88,13 +89,13 @@ impl AnalyticsQueue {
         if batch.is_empty() {
             return; // Nothing to do
         }
-        
+
         #[derive(Serialize)]
         struct Payload<'a> {
             client_id: &'a str,
             events: &'a [AnalyticsEvent],
         }
-        
+
         let payload = Payload {
             client_id: &self.client_id,
             events: &batch,
@@ -123,7 +124,7 @@ impl AnalyticsQueue {
         tauri::async_runtime::spawn(async move {
             // Wait a few seconds on startup before first flush
             tokio::time::sleep(Duration::from_secs(5)).await;
-            
+
             loop {
                 queue.flush().await;
                 tokio::time::sleep(Duration::from_secs(FLUSH_INTERVAL_SECS)).await;

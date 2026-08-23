@@ -9,8 +9,8 @@
 //! ## Architecture Rule
 //! No business logic lives here. This is pure wiring.
 
-mod commands;
 pub mod analytics;
+mod commands;
 pub mod registry;
 
 use std::sync::Arc;
@@ -73,11 +73,14 @@ pub fn run() {
             }
 
             // Setup Analytics Queue
-            let app_data_dir = app.path().app_data_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+            let app_data_dir = app
+                .path()
+                .app_data_dir()
+                .unwrap_or_else(|_| std::path::PathBuf::from("."));
             if !app_data_dir.exists() {
                 std::fs::create_dir_all(&app_data_dir).ok();
             }
-            
+
             let analytics_queue = Arc::new(analytics::AnalyticsQueue::new(app_data_dir));
             analytics::AnalyticsQueue::start_worker(analytics_queue.clone());
 
@@ -94,9 +97,11 @@ pub fn run() {
                             if let Err(e) = app_handle.emit("job-event", &event) {
                                 tracing::warn!("Failed to emit job event: {e}");
                             }
-                            
+
                             // If it's a completed event, push to analytics
-                            if let anyfile_core::JobEvent::JobCompleted { id: _, result: _ } = &event {
+                            if let anyfile_core::JobEvent::JobCompleted { id: _, result: _ } =
+                                &event
+                            {
                                 // Real app would read settings here to check if analytics is enabled.
                                 // For MVP, we assume true or you'd pass a settings state.
                                 let a_event = analytics::AnalyticsEvent {
@@ -105,7 +110,10 @@ pub fn run() {
                                     operation: "job".to_string(), // In full implementation, we'd look up the tool name from the job
                                     platform: "windows".to_string(),
                                     app_version: app_handle.package_info().version.to_string(),
-                                    timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs(),
+                                    timestamp: SystemTime::now()
+                                        .duration_since(UNIX_EPOCH)
+                                        .unwrap()
+                                        .as_secs(),
                                 };
                                 let q = analytics_queue.clone();
                                 tauri::async_runtime::spawn(async move {

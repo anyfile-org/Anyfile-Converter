@@ -23,7 +23,12 @@ impl ImageEngine {
     }
 
     /// Save an image to disk in the specified format.
-    pub fn save(&self, img: &DynamicImage, path: &Path, format: ImageFormat) -> Result<(), EngineError> {
+    pub fn save(
+        &self,
+        img: &DynamicImage,
+        path: &Path,
+        format: ImageFormat,
+    ) -> Result<(), EngineError> {
         // Ensure the parent directory exists
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
@@ -67,8 +72,7 @@ impl ImageEngine {
         }
 
         let mut file = std::fs::File::create(output)?;
-        let mut encoder =
-            image::codecs::jpeg::JpegEncoder::new_with_quality(&mut file, quality);
+        let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut file, quality);
         encoder
             .encode_image(&img)
             .map_err(|e| EngineError::Image(e.to_string()))
@@ -185,6 +189,9 @@ mod tests {
 
         let high_size = std::fs::metadata(&output_high).unwrap().len();
         let low_size = std::fs::metadata(&output_low).unwrap().len();
-        assert!(low_size < high_size, "Low quality should produce smaller file");
+        assert!(
+            low_size < high_size,
+            "Low quality should produce smaller file"
+        );
     }
 }
