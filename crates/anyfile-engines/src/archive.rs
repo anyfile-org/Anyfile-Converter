@@ -6,11 +6,11 @@
 
 use std::{
     fs,
-    io::{self, Read, Write},
+    io,
     path::{Component, Path, PathBuf},
 };
 
-use tracing::{debug, warn};
+use tracing::debug;
 use zip::{write::SimpleFileOptions, ZipArchive, ZipWriter};
 
 use crate::EngineError;

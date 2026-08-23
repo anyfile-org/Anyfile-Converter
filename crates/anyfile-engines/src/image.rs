@@ -5,7 +5,7 @@
 
 use std::path::Path;
 
-use image::{codecs, DynamicImage, ImageEncoder, ImageFormat};
+use image::{DynamicImage, ImageEncoder, ImageFormat};
 use tracing::debug;
 
 use crate::EngineError;
