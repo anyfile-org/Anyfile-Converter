@@ -4,8 +4,6 @@
 
 **A free, open-source, privacy-first, offline-first desktop file toolbox.**
 
-*iLovePDF — but for your entire computer, completely offline.*
-
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![CI](https://github.com/anyfile-convert/anyfile-convert/actions/workflows/ci.yml/badge.svg)](https://github.com/anyfile-convert/anyfile-convert/actions/workflows/ci.yml)
 [![Rust](https://img.shields.io/badge/rust-1.78%2B-orange.svg)](https://www.rust-lang.org)
@@ -107,7 +105,7 @@ Video operations require FFmpeg. If you don't have it installed, AnyFile Convert
 
 ## Development Setup
 
-See **[DEVELOPMENT.md](DEVELOPMENT.md)** for full setup instructions.
+See **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** for full setup instructions.
 
 **Quick start:**
 
@@ -141,7 +139,7 @@ React/TypeScript UI
   Your local filesystem
 ```
 
-See **[ARCHITECTURE.md](ARCHITECTURE.md)** for detailed documentation.
+See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for detailed documentation.
 
 ---
 
@@ -183,13 +181,14 @@ Key points:
 - If you distribute a modified version, you must also provide its source code under GPL-3.0
 - The copyleft ensures AnyFile Convert remains open source forever
 
-Third-party dependency licenses: **[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)**
-
 ---
 
 ## Roadmap
 
-See **[ROADMAP.md](ROADMAP.md)** for the full development roadmap.
+**Phase 1:** Windows MVP (Images, basic PDFs, simple archives)
+**Phase 2:** Advanced Video/Audio compression and Metadata tools
+**Phase 3:** Full Plugin Architecture
+**Phase 4:** macOS Native Support
 
 ---
 
