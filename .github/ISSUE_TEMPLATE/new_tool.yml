@@ -1,0 +1,29 @@
+name: New Tool Request
+description: Request a new file conversion or processing tool
+title: "[New Tool]: "
+labels: ["new-tool", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new tool!
+  - type: textarea
+    id: description
+    attributes:
+      label: What should the tool do?
+      description: e.g. "Convert WebP images to PNG" or "Extract audio from MKV files"
+    validations:
+      required: true
+  - type: textarea
+    id: usecase
+    attributes:
+      label: Use Case
+      description: Why is this tool useful to you and others?
+    validations:
+      required: true
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Are you willing to contribute this tool yourself?
+      options:
+        - label: Yes, I can write the Rust code for this (Check `docs/development/adding-a-tool.md`)

@@ -1,0 +1,28 @@
+[package]
+name        = "anyfile-engines"
+version     = "0.1.0"
+edition     = "2021"
+description = "Engine abstractions (FFmpeg, image crate, lopdf, zip) for AnyFile Convert"
+license     = "GPL-3.0-or-later"
+repository  = "https://github.com/anyfile-convert/anyfile-convert"
+
+[dependencies]
+tokio       = { workspace = true }
+serde       = { workspace = true }
+thiserror   = { workspace = true }
+tracing     = { workspace = true }
+tokio-util  = { workspace = true }
+anyfile-fs  = { workspace = true }
+
+# Image processing — pure Rust, no native DLL required
+image       = { version = "0.25", features = ["jpeg", "png"] }
+
+# PDF manipulation — pure Rust
+lopdf       = "0.33"
+
+# ZIP archive — pure Rust
+zip         = { version = "2", features = ["deflate"] }
+
+[dev-dependencies]
+tokio    = { workspace = true }
+tempfile = "3"

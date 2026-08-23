@@ -1,0 +1,15 @@
+[package]
+name        = "anyfile-fs"
+version     = "0.1.0"
+edition     = "2021"
+description = "Filesystem utilities, path validation, and temp file management for AnyFile Convert"
+license     = "GPL-3.0-or-later"
+repository  = "https://github.com/anyfile-convert/anyfile-convert"
+
+[dependencies]
+thiserror = { workspace = true }
+tracing   = { workspace = true }
+serde     = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"

@@ -1,0 +1,37 @@
+# AnyFile Convert — .gitignore
+
+# ── Rust ──────────────────────────────────────────────────────────────────────
+/target/
+**/*.rs.bk
+Cargo.lock          # Committed for binaries, ignored for libraries
+                    # We keep it for the Tauri app (binary crate)
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+node_modules/
+dist/
+.vite/
+
+# ── Tauri ─────────────────────────────────────────────────────────────────────
+src-tauri/target/
+src-tauri/gen/
+WixTools/
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.iml
+*.suo
+*.user
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Environment ───────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Test artefacts ────────────────────────────────────────────────────────────
+/tests/output/

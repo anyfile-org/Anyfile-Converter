@@ -1,0 +1,8 @@
+[build]
+# Use a target directory outside the project folder to avoid Windows Defender
+# scanning interference with .rcgu.o intermediary object files.
+# Set CARGO_TARGET_DIR env var to override, or change this path.
+target-dir = "C:/cargo-target/anyfile-convert"
+
+[profile.dev]
+codegen-units = 1

@@ -1,0 +1,24 @@
+[package]
+name        = "anyfile-tools"
+version     = "0.1.0"
+edition     = "2021"
+description = "Tool implementations for AnyFile Convert"
+license     = "GPL-3.0-or-later"
+repository  = "https://github.com/anyfile-convert/anyfile-convert"
+
+[dependencies]
+tokio           = { workspace = true }
+serde           = { workspace = true }
+serde_json      = { workspace = true }
+thiserror       = { workspace = true }
+tracing         = { workspace = true }
+async-trait     = { workspace = true }
+tokio-util      = { workspace = true }
+anyfile-core    = { workspace = true }
+anyfile-engines = { workspace = true }
+anyfile-fs      = { workspace = true }
+image           = "0.25"
+
+[dev-dependencies]
+tokio     = { workspace = true }
+tempfile  = "3"
