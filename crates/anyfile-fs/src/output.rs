@@ -68,7 +68,18 @@ impl OutputPath {
             }
         };
 
-        let mut path = config.directory.join(file_name);
+        // If no explicit output directory is set, save next to the input file
+        // so that e.g. a file from Downloads stays in Downloads.
+        let output_dir = if config.directory.as_os_str().is_empty() {
+            input
+                .parent()
+                .map(|p| p.to_path_buf())
+                .unwrap_or_else(|| std::path::PathBuf::from("."))
+        } else {
+            config.directory.clone()
+        };
+
+        let mut path = output_dir.join(&file_name);
 
         // Handle collision when overwrite is disabled
         if !config.overwrite && path.exists() {
@@ -80,7 +91,7 @@ impl OutputPath {
                     counter,
                     output_extension
                 );
-                let candidate = config.directory.join(stem_with_counter);
+                let candidate = output_dir.join(stem_with_counter);
                 if !candidate.exists() {
                     path = candidate;
                     break;
