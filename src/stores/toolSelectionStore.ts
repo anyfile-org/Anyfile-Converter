@@ -7,11 +7,19 @@ interface ToolSelectionStore {
   applicableTools: ToolMetadata[];
   selectedToolId: string | null;
   compressQuality: number; // 1-100 for JPEG quality
+  splitMode: 'range' | 'chunks'; // pdf.split: extract a range, or split into fixed-size chunks
+  splitStartPage: number;
+  splitEndPage: number;
+  splitPagesPerChunk: number;
   error: string | null;
 
   setSelectedFiles: (paths: string[]) => void;
   setSelectedToolId: (id: string | null) => void;
   setCompressQuality: (q: number) => void;
+  setSplitMode: (mode: 'range' | 'chunks') => void;
+  setSplitStartPage: (n: number) => void;
+  setSplitEndPage: (n: number) => void;
+  setSplitPagesPerChunk: (n: number) => void;
   clearSelection: () => void;
   loadToolsForFiles: (paths: string[]) => Promise<void>;
 }
@@ -26,11 +34,19 @@ export const useToolSelectionStore = create<ToolSelectionStore>((set) => ({
   applicableTools: [],
   selectedToolId: null,
   compressQuality: 75,
+  splitMode: 'range',
+  splitStartPage: 1,
+  splitEndPage: 1,
+  splitPagesPerChunk: 1,
   error: null,
 
   setSelectedFiles: (paths) => set({ selectedFiles: paths }),
   setSelectedToolId: (id) => set({ selectedToolId: id }),
   setCompressQuality: (q) => set({ compressQuality: q }),
+  setSplitMode: (mode) => set({ splitMode: mode }),
+  setSplitStartPage: (n) => set({ splitStartPage: n }),
+  setSplitEndPage: (n) => set({ splitEndPage: n }),
+  setSplitPagesPerChunk: (n) => set({ splitPagesPerChunk: n }),
   clearSelection: () =>
     set({
       selectedFiles: [],

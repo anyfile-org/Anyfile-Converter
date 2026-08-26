@@ -117,12 +117,52 @@ impl Tool for PdfMerge {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Options for PDF split — parsed from `request.options`.
-#[derive(serde::Deserialize)]
+///
+/// Two mutually exclusive modes are supported:
+/// - Range mode: provide `start_page` and `end_page` to extract a single
+///   range of pages into one output file.
+/// - Chunk mode: provide `pages_per_split` to break the document into
+///   consecutive files of that many pages each (the last file may have
+///   fewer pages).
+#[derive(serde::Deserialize, Default)]
 pub struct SplitOptions {
-    /// First page to extract (1-indexed, inclusive).
-    pub start_page: u32,
-    /// Last page to extract (1-indexed, inclusive).
-    pub end_page: u32,
+    /// First page to extract (1-indexed, inclusive). Used in range mode.
+    pub start_page: Option<u32>,
+    /// Last page to extract (1-indexed, inclusive). Used in range mode.
+    pub end_page: Option<u32>,
+    /// Number of pages per output file. Used in chunk mode.
+    pub pages_per_split: Option<u32>,
+}
+
+enum SplitMode {
+    Range { start_page: u32, end_page: u32 },
+    Chunks { pages_per_split: u32 },
+}
+
+impl SplitOptions {
+    fn mode(&self) -> Result<SplitMode, ToolError> {
+        match (self.start_page, self.end_page, self.pages_per_split) {
+            (Some(start_page), Some(end_page), None) => {
+                if start_page < 1 || end_page < start_page {
+                    return Err(ToolError::InvalidOptions(
+                        "start_page must be ≥ 1 and end_page must be ≥ start_page.".to_string(),
+                    ));
+                }
+                Ok(SplitMode::Range { start_page, end_page })
+            }
+            (None, None, Some(pages_per_split)) => {
+                if pages_per_split < 1 {
+                    return Err(ToolError::InvalidOptions(
+                        "pages_per_split must be at least 1.".to_string(),
+                    ));
+                }
+                Ok(SplitMode::Chunks { pages_per_split })
+            }
+            _ => Err(ToolError::InvalidOptions(
+                "Provide either 'start_page' + 'end_page' (to extract a range) or 'pages_per_split' (to split into fixed-size chunks).".to_string(),
+            )),
+        }
+    }
 }
 
 pub struct PdfSplit {
@@ -171,14 +211,11 @@ impl Tool for PdfSplit {
         let opts =
             serde_json::from_value::<SplitOptions>(request.options.clone()).map_err(|_| {
                 ToolError::InvalidOptions(
-                    "Split requires 'start_page' and 'end_page' options.".to_string(),
+                    "Split requires either 'start_page'/'end_page' or 'pages_per_split' options."
+                        .to_string(),
                 )
             })?;
-        if opts.start_page < 1 || opts.end_page < opts.start_page {
-            return Err(ToolError::InvalidOptions(
-                "start_page must be ≥ 1 and end_page must be ≥ start_page.".to_string(),
-            ));
-        }
+        opts.mode()?;
         Ok(())
     }
 
@@ -194,6 +231,7 @@ impl Tool for PdfSplit {
 
         let opts: SplitOptions = serde_json::from_value(request.options.clone())
             .map_err(|e| ToolError::InvalidOptions(e.to_string()))?;
+        let mode = opts.mode()?;
 
         progress.set_percent(10, Some("Loading PDF…"));
 
@@ -205,19 +243,33 @@ impl Tool for PdfSplit {
             .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or("split");
-        let output_name = format!("{}_pages_{}_{}.pdf", stem, opts.start_page, opts.end_page);
-        let output = request.output_config.directory.join(&output_name);
 
         progress.set_percent(30, Some("Extracting pages…"));
 
-        self.engine
-            .split(&input, &output, opts.start_page, opts.end_page)
-            .map_err(|e| ToolError::ProcessingFailed(e.to_string()))?;
+        let output_files = match mode {
+            SplitMode::Range { start_page, end_page } => {
+                let output_name = format!("{stem}_pages_{start_page}_{end_page}.pdf");
+                let output = request.output_config.directory.join(&output_name);
+                self.engine
+                    .split(&input, &output, start_page, end_page)
+                    .map_err(|e| ToolError::ProcessingFailed(e.to_string()))?;
+                vec![output]
+            }
+            SplitMode::Chunks { pages_per_split } => self
+                .engine
+                .split_by_chunk_size(
+                    &input,
+                    &request.output_config.directory,
+                    stem,
+                    pages_per_split,
+                )
+                .map_err(|e| ToolError::ProcessingFailed(e.to_string()))?,
+        };
 
         progress.set_percent(100, None);
 
         Ok(JobOutput {
-            output_files: vec![output],
+            output_files,
             per_file_errors: vec![],
         })
     }
