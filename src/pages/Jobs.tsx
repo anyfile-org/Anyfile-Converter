@@ -1,9 +1,16 @@
 import { useJobStore } from '../stores/jobStore';
 import JobCard from '../components/jobs/JobCard';
-import { Activity } from 'lucide-react';
+import { Activity, Trash2 } from 'lucide-react';
+import { JobState } from '../types/job';
+
+const TERMINAL_STATES: ReadonlyArray<JobState> = ['completed', 'failed', 'cancelled'];
 
 export default function Jobs() {
-  const { jobs, jobOrder, isLoading } = useJobStore();
+  const { jobs, jobOrder, isLoading, clearCompletedJobs } = useJobStore();
+
+  const hasCompleted = jobOrder.some(
+    (id) => TERMINAL_STATES.includes(jobs[id]?.state)
+  );
 
   if (isLoading) {
     return <div className="p-8 text-center text-muted">Loading jobs...</div>;
@@ -11,9 +18,22 @@ export default function Jobs() {
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <div className="flex items-center gap-3 mb-6" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-        <Activity size={28} style={{ color: 'var(--primary-accent)' }} />
-        <h1 className="page-title" style={{ margin: 0 }}>Active Jobs</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Activity size={28} style={{ color: 'var(--primary-accent)' }} />
+          <h1 className="page-title" style={{ margin: 0 }}>Active Jobs</h1>
+        </div>
+
+        {hasCompleted && (
+          <button
+            className="btn btn-secondary"
+            onClick={clearCompletedJobs}
+            title="Remove all completed, failed, and cancelled jobs"
+            style={{ padding: '0.4rem 0.9rem', fontSize: '0.85rem', gap: '0.4rem' }}
+          >
+            <Trash2 size={14} /> Clear completed
+          </button>
+        )}
       </div>
 
       {jobOrder.length === 0 ? (

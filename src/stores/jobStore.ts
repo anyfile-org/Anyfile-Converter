@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Job, JobEvent, JobId } from '../types/job';
+import { Job, JobEvent, JobId, JobState } from '../types/job';
 import { jobsService } from '../services/jobs';
 import { listen } from '@tauri-apps/api/event';
 
@@ -13,6 +13,7 @@ interface JobStore {
   setupEventBridge: () => Promise<() => void>; // Returns unlisten function
   handleEvent: (event: JobEvent) => void;
   cancelJob: (id: JobId) => Promise<void>;
+  clearCompletedJobs: () => void;
 }
 
 export const useJobStore = create<JobStore>((set, get) => ({
@@ -120,5 +121,18 @@ export const useJobStore = create<JobStore>((set, get) => ({
     } catch (error) {
       console.error(`Failed to cancel job ${id}:`, error);
     }
-  }
+  },
+
+  clearCompletedJobs: () => {
+    const TERMINAL_STATES: ReadonlyArray<JobState> = ['completed', 'failed', 'cancelled'];
+    set((state) => {
+      const keepOrder = state.jobOrder.filter(
+        (id) => !TERMINAL_STATES.includes(state.jobs[id]?.state)
+      );
+      const keepJobs = Object.fromEntries(
+        keepOrder.map((id) => [id, state.jobs[id]])
+      ) as Record<JobId, Job>;
+      return { jobs: keepJobs, jobOrder: keepOrder };
+    });
+  },
 }));
