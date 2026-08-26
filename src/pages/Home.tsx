@@ -14,9 +14,17 @@ export default function Home() {
     applicableTools,
     selectedToolId,
     compressQuality,
+    splitMode,
+    splitStartPage,
+    splitEndPage,
+    splitPagesPerChunk,
     error,
     setSelectedToolId,
     setCompressQuality,
+    setSplitMode,
+    setSplitStartPage,
+    setSplitEndPage,
+    setSplitPagesPerChunk,
     clearSelection,
     loadToolsForFiles,
   } = useToolSelectionStore();
@@ -59,6 +67,14 @@ export default function Home() {
     const options: Record<string, unknown> = {};
     if (selectedToolId === 'image.compress') {
       options.jpeg_quality = compressQuality;
+    }
+    if (selectedToolId === 'pdf.split') {
+      if (splitMode === 'range') {
+        options.start_page = splitStartPage;
+        options.end_page = splitEndPage;
+      } else {
+        options.pages_per_split = splitPagesPerChunk;
+      }
     }
 
     try {
@@ -266,6 +282,87 @@ export default function Home() {
                     : '📷 High quality'}
                 </span>
                 <span>Best quality (95%)</span>
+              </div>
+            </div>
+          )}
+
+          {/* Split options — only shown for the PDF split tool */}
+          {selectedToolId === 'pdf.split' && (
+            <div
+              style={{
+                padding: '1rem',
+                background: 'rgba(239,68,68,0.06)',
+                border: '1px solid rgba(239,68,68,0.2)',
+                borderRadius: '8px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+              }}
+            >
+              <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Sliders size={16} style={{ color: 'var(--primary-accent)' }} />
+                Split Options
+              </label>
+
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  className={splitMode === 'range' ? 'btn btn-primary' : 'btn btn-secondary'}
+                  style={{ flex: 1, padding: '0.5rem' }}
+                  onClick={() => setSplitMode('range')}
+                >
+                  Page range
+                </button>
+                <button
+                  type="button"
+                  className={splitMode === 'chunks' ? 'btn btn-primary' : 'btn btn-secondary'}
+                  style={{ flex: 1, padding: '0.5rem' }}
+                  onClick={() => setSplitMode('chunks')}
+                >
+                  Every N pages
+                </button>
+              </div>
+
+              {splitMode === 'range' ? (
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    From page
+                    <input
+                      type="number"
+                      min={1}
+                      value={splitStartPage}
+                      onChange={(e) => setSplitStartPage(Math.max(1, Number(e.target.value)))}
+                      style={{ width: '5rem', marginLeft: '0.5rem' }}
+                    />
+                  </label>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    To page
+                    <input
+                      type="number"
+                      min={splitStartPage}
+                      value={splitEndPage}
+                      onChange={(e) => setSplitEndPage(Math.max(splitStartPage, Number(e.target.value)))}
+                      style={{ width: '5rem', marginLeft: '0.5rem' }}
+                    />
+                  </label>
+                </div>
+              ) : (
+                <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Pages per split file
+                  <input
+                    type="number"
+                    min={1}
+                    value={splitPagesPerChunk}
+                    onChange={(e) => setSplitPagesPerChunk(Math.max(1, Number(e.target.value)))}
+                    style={{ width: '5rem', marginLeft: '0.5rem' }}
+                  />
+                </label>
+              )}
+
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                {splitMode === 'range'
+                  ? 'Extracts one file containing the chosen page range.'
+                  : 'Breaks the PDF into multiple files, each with this many pages.'}
               </div>
             </div>
           )}
