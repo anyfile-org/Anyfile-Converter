@@ -247,7 +247,10 @@ impl Tool for PdfSplit {
         progress.set_percent(30, Some("Extracting pages…"));
 
         let output_files = match mode {
-            SplitMode::Range { start_page, end_page } => {
+            SplitMode::Range {
+                start_page,
+                end_page,
+            } => {
                 let output_name = format!("{stem}_pages_{start_page}_{end_page}.pdf");
                 let output = request.output_config.directory.join(&output_name);
                 self.engine

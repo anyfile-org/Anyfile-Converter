@@ -70,12 +70,7 @@ impl PdfEngine {
             documents_pages.extend(
                 doc.get_pages()
                     .into_values()
-                    .map(|object_id| {
-                        (
-                            object_id,
-                            doc.get_object(object_id).unwrap().to_owned(),
-                        )
-                    })
+                    .map(|object_id| (object_id, doc.get_object(object_id).unwrap().to_owned()))
                     .collect::<BTreeMap<ObjectId, Object>>(),
             );
             documents_objects.extend(doc.objects.clone());
@@ -120,10 +115,10 @@ impl PdfEngine {
             }
         }
 
-        let catalog_object =
-            catalog_object.ok_or_else(|| EngineError::Pdf("No catalog found while merging PDFs".to_string()))?;
-        let pages_object =
-            pages_object.ok_or_else(|| EngineError::Pdf("No page tree found while merging PDFs".to_string()))?;
+        let catalog_object = catalog_object
+            .ok_or_else(|| EngineError::Pdf("No catalog found while merging PDFs".to_string()))?;
+        let pages_object = pages_object
+            .ok_or_else(|| EngineError::Pdf("No page tree found while merging PDFs".to_string()))?;
 
         // Re-insert every page object, fixing its Parent to point at the
         // single merged Pages node.
@@ -146,7 +141,9 @@ impl PdfEngine {
                     .map(|object_id| Object::Reference(*object_id))
                     .collect::<Vec<_>>(),
             );
-            document.objects.insert(pages_object.0, Object::Dictionary(dictionary));
+            document
+                .objects
+                .insert(pages_object.0, Object::Dictionary(dictionary));
         }
 
         // Point the catalog at the merged Pages node and drop any dangling
@@ -155,7 +152,9 @@ impl PdfEngine {
             let mut dictionary = dictionary.clone();
             dictionary.set("Pages", pages_object.0);
             dictionary.remove(b"Outlines");
-            document.objects.insert(catalog_object.0, Object::Dictionary(dictionary));
+            document
+                .objects
+                .insert(catalog_object.0, Object::Dictionary(dictionary));
         }
 
         document.trailer.set("Root", catalog_object.0);
