@@ -1,11 +1,11 @@
 [package]
 name        = "anyfile-convert"
-version     = "1.0.3"
+version     = "1.1.0"
 edition     = "2021"
 description = "AnyFile Convert — privacy-first, offline-first file toolbox"
 authors     = ["AnyFile Convert Contributors"]
 license     = "GPL-3.0-or-later"
-repository  = "https://github.com/anyfile-converter/Anyfile-Converter"
+repository  = "https://github.com/anyfile-org/Anyfile-Converter"
 
 # lib.rs is required for Tauri 2.x mobile/app handle access
 [lib]

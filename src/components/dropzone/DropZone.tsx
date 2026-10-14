@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef, DragEvent } from 'react';
+import { useState, useEffect, useRef, DragEvent, ChangeEvent } from 'react';
 import { UploadCloud, Plus } from 'lucide-react';
+import { isTauri } from '../../utils/platform';
+import { registerWebFile } from '../../services/jobs';
 
 interface DropZoneProps {
   onFilesSelected: (files: string[]) => void;
@@ -7,16 +9,18 @@ interface DropZoneProps {
 
 export default function DropZone({ onFilesSelected }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [dialogError, setDialogError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Store the callback in a ref so the effect never needs to re-run
-  // when the parent re-renders with a new function reference.
   const callbackRef = useRef(onFilesSelected);
   useEffect(() => {
     callbackRef.current = onFilesSelected;
   });
 
-  // Register Tauri native drag-drop listeners exactly once.
+  // Register Tauri native drag-drop listeners if inside desktop
   useEffect(() => {
+    if (!isTauri()) return;
+
     let unlistenDrop: (() => void) | undefined;
     let unlistenHover: (() => void) | undefined;
     let unlistenCancel: (() => void) | undefined;
@@ -40,35 +44,78 @@ export default function DropZone({ onFilesSelected }: DropZoneProps) {
           setIsDragging(false);
         });
       } catch (err) {
-        console.error('Failed to setup drag and drop listeners:', err);
+        console.warn('Tauri drag and drop listener setup skipped:', err);
       }
     };
 
     setupListeners();
 
-    // Cleanup on unmount only
     return () => {
       if (unlistenDrop) unlistenDrop();
       if (unlistenHover) unlistenHover();
       if (unlistenCancel) unlistenCancel();
     };
-  }, []); // ← empty dep array: register once, use ref for fresh callback
+  }, []);
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => e.preventDefault();
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => e.preventDefault();
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => e.preventDefault();
+  // Standard HTML5 drag-and-drop handlers for web mode and browser fallback
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const files = Array.from(e.dataTransfer.files);
+      const names: string[] = [];
+      files.forEach((file) => {
+        names.push(registerWebFile(file));
+      });
+      callbackRef.current(names);
+    }
+  };
+
+  const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      const names: string[] = [];
+      files.forEach((file) => {
+        names.push(registerWebFile(file));
+      });
+      callbackRef.current(names);
+      // Reset input value so same files can be re-selected if desired
+      e.target.value = '';
+    }
+  };
 
   const openFilePicker = async () => {
-    try {
-      const { open } = await import('@tauri-apps/plugin-dialog');
-      const selected = await open({ multiple: true });
-      if (selected) {
-        const paths = Array.isArray(selected) ? selected : [selected];
-        callbackRef.current(paths);
+    setDialogError(null);
+    if (isTauri()) {
+      try {
+        const { open } = await import('@tauri-apps/plugin-dialog');
+        const selected = await open({ multiple: true });
+        if (selected) {
+          const paths = Array.isArray(selected) ? selected : [selected];
+          callbackRef.current(paths);
+        }
+      } catch (err) {
+        console.error('Tauri open dialog failed:', err);
+        setDialogError(err instanceof Error ? err.message : 'Could not open the file picker.');
       }
-    } catch (err) {
-      console.error('Failed to open file picker:', err);
+      return;
     }
+
+    fileInputRef.current?.click();
   };
 
   return (
@@ -94,6 +141,14 @@ export default function DropZone({ onFilesSelected }: DropZoneProps) {
       onDrop={handleDrop}
       onClick={openFilePicker}
     >
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileInputChange}
+        multiple
+        style={{ display: 'none' }}
+      />
+
       <div
         style={{
           width: '80px',
@@ -131,6 +186,11 @@ export default function DropZone({ onFilesSelected }: DropZoneProps) {
       <p className="text-muted" style={{ fontSize: '0.85rem', marginTop: '2rem' }}>
         Your files never leave your device. 100% private.
       </p>
+      {dialogError && (
+        <p role="alert" style={{ color: 'var(--error)', fontSize: '0.85rem', marginTop: '1rem' }}>
+          Could not open the file picker: {dialogError}
+        </p>
+      )}
     </div>
   );
 }

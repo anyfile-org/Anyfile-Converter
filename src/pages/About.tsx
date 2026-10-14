@@ -55,7 +55,7 @@ export default function About() {
         </div>
 
         <div className="mt-8 text-center" style={{ marginTop: '2rem', textAlign: 'center' }}>
-          <a href="https://github.com/anyfile-converter/Anyfile-Converter" target="_blank" rel="noreferrer" className="btn btn-secondary inline-flex items-center gap-2">
+          <a href="https://github.com/anyfile-org/Anyfile-Converter" target="_blank" rel="noreferrer" className="btn btn-secondary inline-flex items-center gap-2">
             <ExternalLink size={18} />
             View on GitHub
           </a>

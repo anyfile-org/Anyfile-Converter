@@ -27,6 +27,8 @@ pub fn register_tools(registry: &mut ToolRegistry) {
     // ── Image ────────────────────────────────────────────────────────────
     registry.register(image::JpgToPng::new());
     registry.register(image::PngToJpg::new());
+    registry.register(image::ImageToFormat::webp());
+    registry.register(image::ImageToFormat::avif());
     registry.register(image::ImageCompress::new());
 
     // ── PDF ──────────────────────────────────────────────────────────────

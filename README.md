@@ -7,11 +7,11 @@
 *Securely convert, merge, compress, and process your images, PDFs, videos, and archives entirely on your local machine.*
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![CI](https://github.com/anyfile-converter/Anyfile-Converter/actions/workflows/ci.yml/badge.svg)](https://github.com/anyfile-converter/Anyfile-Converter/actions/workflows/ci.yml)
+[![CI](https://github.com/anyfile-org/Anyfile-Converter/actions/workflows/ci.yml/badge.svg)](https://github.com/anyfile-org/Anyfile-Converter/actions/workflows/ci.yml)
 [![Rust](https://img.shields.io/badge/rust-1.78%2B-orange.svg)](https://www.rust-lang.org)
-[![Platform: Windows](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/anyfile-converter/Anyfile-Converter/releases)
+[![Platform: Windows](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/anyfile-org/Anyfile-Converter/releases)
 
-> **Status: 🚀 Stable Release — v1.0.3**
+> **Status: 🚀 Stable Release — v1.1.0**
 
 </div>
 
@@ -24,6 +24,7 @@ AnyFile Convert is a powerful, privacy-first desktop application designed to han
 Whether you need a **free image converter, offline PDF merger, or video audio extractor**, AnyFile Convert is your all-in-one productivity toolbox for Windows.
 
 - Convert images between formats
+- Convert images to WebP and AVIF
 - Merge and split PDFs
 - Extract audio from video
 - Create and extract archives
@@ -56,8 +57,8 @@ Most file conversion tools are web apps that upload your files to third-party se
 | JPG/JPEG → PNG | ✅ v1.0 |
 | PNG → JPG | ✅ v1.0 |
 | Compress image (JPG, PNG) | ✅ v1.0 |
-| WebP conversion | 📋 Planned |
-| AVIF support | 📋 Planned |
+| Convert common image formats to WebP | ✅ v1.1.0 |
+| Convert common image formats to AVIF | ✅ v1.1.0 |
 
 ### PDF ✅ Implemented
 | Operation | Status |
@@ -96,10 +97,10 @@ Most file conversion tools are web apps that upload your files to third-party se
 
 ## Installation
 
-> **Note:** v1.0.3 is our latest stable release!
+> **Note:** v1.1.0 is our latest stable release!
 
 **Windows:**
-1. Download `AnyFile.Convert_1.0.3_x64-setup.exe` from the [Releases](https://github.com/anyfile-converter/Anyfile-Converter/releases) page
+1. Download the Windows installer from the [v1.1.0 release](https://github.com/anyfile-org/Anyfile-Converter/releases/tag/v1.1.0)
 2. Run the installer
 3. AnyFile Convert is ready — no account, no activation
 
@@ -117,7 +118,7 @@ See **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** for full setup instructions.
 ```bash
 # Prerequisites: Rust (stable), Node.js 20+, Tauri prerequisites
 
-git clone https://github.com/anyfile-converter/Anyfile-Converter.git
+git clone https://github.com/anyfile-org/Anyfile-Converter.git
 cd Anyfile-Converter
 npm install
 npm run tauri dev
@@ -137,7 +138,7 @@ React/TypeScript UI
        ↓ Tauri commands
   Rust Application Core
        ↓
-  Tool Registry (8 operations in v0.1)
+  Tool Registry (10 built-in operations)
        ↓
   Engine Layer (image crate, lopdf, zip, FFmpeg)
        ↓
@@ -156,7 +157,7 @@ See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the full guide.
 
 **Adding a new conversion operation is the best way to start.** It takes 5 steps and does not require touching any existing code. See [Adding Your First Tool](docs/development/adding-a-tool.md).
 
-Good first issues are labelled [`good first issue`](https://github.com/anyfile-converter/Anyfile-Converter/issues?q=label%3A%22good+first+issue%22) on GitHub.
+Good first issues are labelled [`good first issue`](https://github.com/anyfile-org/Anyfile-Converter/issues?q=label%3A%22good+first+issue%22) on GitHub.
 
 ---
 

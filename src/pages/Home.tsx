@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import DropZone from '../components/dropzone/DropZone';
-import { jobsService } from '../services/jobs';
-import { Play, X, AlertCircle, Sliders } from 'lucide-react';
+import { getWebFile, jobsService } from '../services/jobs';
+import { Play, X, AlertCircle, Sliders, Trash2, Download, FileText } from 'lucide-react';
 import { useToolSelectionStore } from '../stores/toolSelectionStore';
+import { useSettingsStore } from '../stores/settingsStore';
+import { isTauri } from '../utils/platform';
 
 let hasProcessedStartupArgs = false;
 
 export default function Home() {
   const navigate = useNavigate();
+  const defaultOutputDir = useSettingsStore((state) => state.settings?.default_output_dir ?? '');
+  const settingsLoaded = useSettingsStore((state) => state.settings !== null);
   const {
     selectedFiles,
     applicableTools,
@@ -19,11 +23,16 @@ export default function Home() {
     setCompressQuality,
     clearSelection,
     loadToolsForFiles,
+    setSelectedFiles,
   } = useToolSelectionStore();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [startPage, setStartPage] = useState<number>(1);
+  const [endPage, setEndPage] = useState<number>(1);
 
   useEffect(() => {
+    if (!isTauri() || !settingsLoaded) return;
     const checkStartupArgs = async () => {
       if (hasProcessedStartupArgs) return;
       hasProcessedStartupArgs = true;
@@ -34,7 +43,11 @@ export default function Home() {
           await jobsService.submit({
             tool_id: args.tool,
             input_files: [args.file],
-            output_config: { directory: '', overwrite: false, naming: 'same_name_new_extension' },
+            output_config: {
+              directory: defaultOutputDir,
+              overwrite: false,
+              naming: 'same_name_new_extension',
+            },
             options: {},
           });
           navigate('/jobs');
@@ -46,19 +59,33 @@ export default function Home() {
       }
     };
     checkStartupArgs();
-  }, [navigate, loadToolsForFiles]);
+  }, [navigate, loadToolsForFiles, defaultOutputDir, settingsLoaded]);
 
   const handleFilesSelected = (paths: string[]) => {
     loadToolsForFiles(paths);
   };
 
+  const handleRemoveFile = (indexToRemove: number) => {
+    const updated = selectedFiles.filter((_, idx) => idx !== indexToRemove);
+    if (updated.length === 0) {
+      clearSelection();
+    } else {
+      setSelectedFiles(updated);
+      loadToolsForFiles(updated);
+    }
+  };
+
   const handleStart = async () => {
     if (!selectedToolId || selectedFiles.length === 0) return;
     setIsSubmitting(true);
+    setSubmitError(null);
 
     const options: Record<string, unknown> = {};
     if (selectedToolId === 'image.compress') {
       options.jpeg_quality = compressQuality;
+    } else if (selectedToolId === 'pdf.split') {
+      options.start_page = Number(startPage);
+      options.end_page = Number(endPage);
     }
 
     try {
@@ -66,7 +93,7 @@ export default function Home() {
         tool_id: selectedToolId,
         input_files: selectedFiles,
         output_config: {
-          directory: '',
+          directory: defaultOutputDir,
           overwrite: false,
           naming: 'same_name_new_extension',
         },
@@ -74,15 +101,60 @@ export default function Home() {
       });
       clearSelection();
       navigate('/jobs');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to submit job:', err);
+      setSubmitError(err instanceof Error ? err.message : 'Could not start the conversion.');
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex-col gap-4" style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <h1 className="page-title">AnyFile Convert</h1>
+    <div className="flex-col gap-4" style={{ maxWidth: '850px', margin: '0 auto' }}>
+      {!isTauri() && (
+        <div
+          style={{
+            padding: '0.75rem 1rem',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.88rem',
+            marginBottom: '1rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>🌐</span>
+            <span>
+              <strong>Web Mode:</strong> Image conversions run locally in your browser.
+            </span>
+          </div>
+          <a
+            href="https://github.com/anyfile-org/Anyfile-Converter/releases/latest"
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-primary"
+            style={{ padding: '0.3rem 0.75rem', fontSize: '0.8rem', gap: '0.35rem' }}
+          >
+            <Download size={14} /> Download Windows App
+          </a>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <div>
+          <h1 className="page-title" style={{ marginBottom: '0.25rem' }}>File Converter</h1>
+          <p className="text-muted" style={{ fontSize: '0.9rem' }}>
+            Convert, compress, and process your files 100% locally with zero cloud uploads.
+          </p>
+        </div>
+        {!isTauri() && (
+          <Link to="/" className="btn btn-secondary" style={{ fontSize: '0.85rem' }}>
+            ← Back to Landing Page
+          </Link>
+        )}
+      </div>
 
       {selectedFiles.length === 0 ? (
         <DropZone onFilesSelected={handleFilesSelected} />
@@ -109,34 +181,56 @@ export default function Home() {
               onClick={clearSelection}
               style={{ padding: '0.4rem 0.8rem' }}
             >
-              <X size={16} /> Clear
+              <X size={16} /> Clear All
             </button>
           </div>
 
-          {/* File list preview */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            {selectedFiles.slice(0, 5).map((f) => (
-              <div
-                key={f}
-                style={{
-                  fontSize: '0.82rem',
-                  color: 'var(--text-muted)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  background: 'rgba(255,255,255,0.03)',
-                  padding: '0.3rem 0.6rem',
-                  borderRadius: '4px',
-                }}
-              >
-                📄 {f.replace(/\\/g, '/').split('/').pop()}
-              </div>
-            ))}
-            {selectedFiles.length > 5 && (
-              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', padding: '0.25rem 0.6rem' }}>
-                + {selectedFiles.length - 5} more files…
-              </div>
-            )}
+          {/* File list preview with individual remove */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            {selectedFiles.map((file, idx) => {
+              const displayName =
+                getWebFile(file)?.name ?? file.replace(/\\/g, '/').split('/').pop() ?? file;
+              return (
+                <div
+                  key={`${file}-${idx}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '0.85rem',
+                    color: 'var(--text-main)',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid var(--border-light)',
+                    padding: '0.4rem 0.75rem',
+                    borderRadius: '6px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
+                    <FileText size={16} style={{ color: 'var(--primary-accent)', flexShrink: 0 }} />
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {displayName}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveFile(idx)}
+                    title="Remove file"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                      padding: '2px',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--error)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
 
           {/* Error */}
@@ -155,6 +249,20 @@ export default function Home() {
             >
               <AlertCircle size={18} />
               <span>{error}</span>
+            </div>
+          )}
+          {submitError && (
+            <div
+              role="alert"
+              style={{
+                padding: '0.75rem',
+                backgroundColor: 'rgba(127, 29, 29, 0.3)',
+                border: '1px solid rgba(239, 68, 68, 0.5)',
+                borderRadius: '6px',
+                color: 'var(--error)',
+              }}
+            >
+              {submitError}
             </div>
           )}
 
@@ -182,8 +290,9 @@ export default function Home() {
                           : 'var(--border-light)',
                       background:
                         selectedToolId === tool.id
-                          ? 'rgba(239, 68, 68, 0.1)'
+                          ? 'rgba(239, 68, 68, 0.12)'
                           : 'var(--bg-surface)',
+                      boxShadow: selectedToolId === tool.id ? '0 0 15px rgba(239, 68, 68, 0.2)' : 'none',
                       transition: 'all 0.15s ease',
                     }}
                     onClick={() => setSelectedToolId(tool.id)}
@@ -266,6 +375,54 @@ export default function Home() {
                     : '📷 High quality'}
                 </span>
                 <span>Best quality (95%)</span>
+              </div>
+            </div>
+          )}
+
+          {/* PDF Split Options — page range inputs */}
+          {selectedToolId === 'pdf.split' && (
+            <div
+              style={{
+                padding: '1rem',
+                background: 'rgba(239,68,68,0.06)',
+                border: '1px solid rgba(239,68,68,0.2)',
+                borderRadius: '8px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+              }}
+            >
+              <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <FileText size={16} style={{ color: 'var(--primary-accent)' }} />
+                Page Range to Extract
+              </label>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>
+                    Start Page
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    className="input-field"
+                    value={startPage}
+                    onChange={(e) => setStartPage(Math.max(1, parseInt(e.target.value) || 1))}
+                    style={{ padding: '0.5rem 0.75rem' }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>
+                    End Page
+                  </label>
+                  <input
+                    type="number"
+                    min={startPage}
+                    className="input-field"
+                    value={endPage}
+                    onChange={(e) => setEndPage(Math.max(startPage, parseInt(e.target.value) || startPage))}
+                    style={{ padding: '0.5rem 0.75rem' }}
+                  />
+                </div>
               </div>
             </div>
           )}

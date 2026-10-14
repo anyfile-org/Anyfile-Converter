@@ -15,7 +15,7 @@ tokio-util  = { workspace = true }
 anyfile-fs  = { workspace = true }
 
 # Image processing — pure Rust, no native DLL required
-image       = { version = "0.25", features = ["jpeg", "png"] }
+image       = { version = "0.25", features = ["jpeg", "png", "webp", "avif"] }
 
 # PDF manipulation — pure Rust
 lopdf       = "0.33"

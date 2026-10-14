@@ -1,7 +1,6 @@
 //! Image engine — wraps the pure-Rust `image` crate.
 //!
-//! No native DLL required. Handles JPG ↔ PNG conversion and quality-based
-//! JPEG compression. For advanced formats (WebP, AVIF, TIFF) see V0.2.
+//! No native DLL required. Handles common image format conversion and compression.
 
 use std::path::Path;
 
@@ -165,6 +164,37 @@ mod tests {
         assert!(output.exists());
         let img = image::open(&output).unwrap();
         assert_eq!(img.width(), 64);
+    }
+
+    #[test]
+    fn convert_to_webp() {
+        let dir = tempdir().unwrap();
+        let input = dir.path().join("test.jpg");
+        let output = dir.path().join("test.webp");
+        create_test_jpeg(&input);
+
+        ImageEngine::new()
+            .convert(&input, &output, ImageFormat::WebP)
+            .unwrap();
+
+        assert_eq!(image::open(output).unwrap().width(), 64);
+    }
+
+    #[test]
+    fn convert_to_avif() {
+        let dir = tempdir().unwrap();
+        let input = dir.path().join("test.jpg");
+        let output = dir.path().join("test.avif");
+        create_test_jpeg(&input);
+
+        ImageEngine::new()
+            .convert(&input, &output, ImageFormat::Avif)
+            .unwrap();
+
+        let encoded = std::fs::read(output).unwrap();
+        assert!(encoded
+            .windows(4)
+            .any(|window| window == b"avif" || window == b"avis"));
     }
 
     #[test]
