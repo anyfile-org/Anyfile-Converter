@@ -44,19 +44,20 @@ jobs:
           releaseDraft: false
           prerelease: false
           releaseBody: |
-            ## 🎉 AnyFile Convert 1.0.0 - First Public Release
-            
-            Welcome to the first official release of **AnyFile Convert**!
-            
-            ### ✨ Features Included
-            - 🚀 Complete offline-first native processing architecture
-            - 🖼️ Lightning-fast Image tools (JPG <-> PNG, Compress)
-            - 📄 PDF tools (Merge, Split)
-            - 🤐 Archive tools (Create/Extract ZIP)
-            - 🎥 Video tools (Extract Audio via FFmpeg)
-            - 🔄 Secure Cryptographic Auto-Updater
-            - 🎨 Premium Dark/Red glassmorphism aesthetic UI
-            - 🪟 Native Windows Context Menu (Right-click) integration
+            ## AnyFile Convert ${{ github.ref_name }}
 
-            *Enjoy complete privacy with 0 cloud uploads and 0 tracking!*
-          args: ${{ matrix.args }}
+            ### What's new
+            - Added WebP and AVIF image export in the desktop app and browser converter.
+            - Replaced sample dashboard numbers with consent-based, database-backed usage analytics and a protected admin dashboard.
+            - Added a paginated analytics event table with button clicks, completed operations, file quantities, and Windows app versions.
+            - Improved browser conversion downloads, duplicate filename handling, and conversion error reporting.
+            - Refined the website navigation, app settings, and local file picker feedback.
+
+            ### Included tools
+            - Images: JPG/PNG conversion, WebP/AVIF export, and compression.
+            - PDFs: merge documents and extract page ranges.
+            - Archives: create and extract ZIP files.
+            - Video: extract audio with locally installed FFmpeg.
+
+            File processing stays on your device. Optional analytics does not include file names, paths, or contents.
+            Download the Windows installer from the assets below. Licensed under GPL-3.0-or-later.

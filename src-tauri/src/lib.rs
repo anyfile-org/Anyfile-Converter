@@ -66,6 +66,7 @@ pub fn run() {
             commands::tools::tools_for_extension,
             commands::settings::get_settings,
             commands::settings::save_settings,
+            commands::settings::get_ffmpeg_status,
             get_startup_args,
         ])
         .setup(|app| {
@@ -83,7 +84,18 @@ pub fn run() {
                 std::fs::create_dir_all(&app_data_dir).ok();
             }
 
-            let analytics_queue = Arc::new(analytics::AnalyticsQueue::new(app_data_dir));
+            let settings_path = app_data_dir.join("settings.json");
+            let analytics_enabled = std::fs::read_to_string(settings_path)
+                .ok()
+                .and_then(|settings| {
+                    serde_json::from_str::<commands::settings::AppSettings>(&settings).ok()
+                })
+                .is_some_and(|settings| settings.analytics_enabled);
+            let analytics_queue = Arc::new(analytics::AnalyticsQueue::new(
+                app_data_dir,
+                analytics_enabled,
+            ));
+            app.manage(analytics_queue.clone());
             analytics::AnalyticsQueue::start_worker(analytics_queue.clone());
 
             // ── Load job history from previous sessions ──────────────────────
@@ -123,22 +135,37 @@ pub fn run() {
                                 commands::jobs::persist_history(&app_handle, &all_jobs);
 
                                 // Analytics
-                                if let anyfile_core::JobEvent::JobCompleted { .. } = &event {
-                                    let a_event = analytics::AnalyticsEvent {
-                                        event: "operation_completed".to_string(),
-                                        category: "tool".to_string(),
-                                        operation: "job".to_string(),
-                                        platform: "windows".to_string(),
-                                        app_version: app_handle.package_info().version.to_string(),
-                                        timestamp: SystemTime::now()
-                                            .duration_since(UNIX_EPOCH)
-                                            .unwrap()
-                                            .as_secs(),
-                                    };
-                                    let q = analytics_queue.clone();
-                                    tauri::async_runtime::spawn(async move {
-                                        let _ = q.push(a_event).await;
-                                    });
+                                if let anyfile_core::JobEvent::JobCompleted { id, result } = &event
+                                {
+                                    if let Some(job) = job_manager.get_job(*id).await {
+                                        if !result.output_files.is_empty() {
+                                            let a_event = analytics::AnalyticsEvent {
+                                                event_id: uuid::Uuid::new_v4().to_string(),
+                                                event: "operation_completed".to_string(),
+                                                category: "tool".to_string(),
+                                                operation: job.tool_id,
+                                                platform: "windows".to_string(),
+                                                app_version: app_handle
+                                                    .package_info()
+                                                    .version
+                                                    .to_string(),
+                                                quantity: result.output_files.len().min(1000)
+                                                    as u16,
+                                                timestamp: SystemTime::now()
+                                                    .duration_since(UNIX_EPOCH)
+                                                    .unwrap_or_default()
+                                                    .as_secs(),
+                                            };
+                                            let q = analytics_queue.clone();
+                                            tauri::async_runtime::spawn(async move {
+                                                if let Err(error) = q.push(a_event).await {
+                                                    tracing::warn!(
+                                                        "Failed to queue analytics event: {error}"
+                                                    );
+                                                }
+                                            });
+                                        }
+                                    }
                                 }
                             }
                         }

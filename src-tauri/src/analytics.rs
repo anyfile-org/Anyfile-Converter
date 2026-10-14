@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::fs::{self, OpenOptions};
@@ -12,22 +13,35 @@ const FLUSH_INTERVAL_SECS: u64 = 300; // 5 minutes
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalyticsEvent {
+    #[serde(default = "new_event_id")]
+    pub event_id: String,
     pub event: String,
     pub category: String,
     pub operation: String,
     pub platform: String,
     pub app_version: String,
+    #[serde(default = "one_event")]
+    pub quantity: u16,
     pub timestamp: u64,
+}
+
+fn one_event() -> u16 {
+    1
+}
+
+fn new_event_id() -> String {
+    uuid::Uuid::new_v4().to_string()
 }
 
 pub struct AnalyticsQueue {
     file_path: PathBuf,
     client_id: String,
     lock: Arc<Mutex<()>>, // Prevent concurrent file access between push and flush
+    enabled: AtomicBool,
 }
 
 impl AnalyticsQueue {
-    pub fn new(app_data_dir: PathBuf) -> Self {
+    pub fn new(app_data_dir: PathBuf, enabled: bool) -> Self {
         let file_path = app_data_dir.join("analytics.jsonl");
         let client_id_path = app_data_dir.join("client_id.txt");
 
@@ -40,15 +54,36 @@ impl AnalyticsQueue {
             id
         };
 
+        if !enabled && file_path.exists() {
+            if let Err(error) = std::fs::remove_file(&file_path) {
+                warn!("Failed to clear queued analytics while analytics is disabled: {error}");
+            }
+        }
+
         Self {
             file_path,
             client_id,
             lock: Arc::new(Mutex::new(())),
+            enabled: AtomicBool::new(enabled),
         }
+    }
+
+    pub async fn set_enabled(&self, enabled: bool) -> Result<(), std::io::Error> {
+        self.enabled.store(enabled, Ordering::Relaxed);
+        if !enabled {
+            let _guard = self.lock.lock().await;
+            if self.file_path.exists() {
+                fs::remove_file(&self.file_path).await?;
+            }
+        }
+        Ok(())
     }
 
     /// Appends an event to the local file queue
     pub async fn push(&self, event: AnalyticsEvent) -> Result<(), Box<dyn std::error::Error>> {
+        if !self.enabled.load(Ordering::Relaxed) {
+            return Ok(());
+        }
         let _guard = self.lock.lock().await;
 
         let mut file = OpenOptions::new()
@@ -66,6 +101,9 @@ impl AnalyticsQueue {
 
     /// Reads all queued events, sends them, and clears the queue on success
     pub async fn flush(&self) {
+        if !self.enabled.load(Ordering::Relaxed) {
+            return;
+        }
         let _guard = self.lock.lock().await;
 
         if !self.file_path.exists() {

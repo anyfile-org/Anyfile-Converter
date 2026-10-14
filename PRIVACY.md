@@ -4,17 +4,19 @@ AnyFile Convert is built with a **strict privacy-first philosophy**.
 
 ## Your Files Stay on Your Device
 
-AnyFile Convert is a local, offline desktop application. 
+The desktop application works offline, and browser-based conversions run locally in the visitor's browser.
 
-1. **No Cloud Uploads**: We never upload your files to any external server or cloud service. All processing (compression, conversion, merging) happens entirely on your local CPU and disk.
+1. **No Cloud Uploads**: We never upload your files to any external server or cloud service. Desktop processing happens on your local machine; browser processing happens in browser memory.
 2. **Offline Capable**: The application does not require an active internet connection to function.
 3. **No Account Required**: You do not need to create an account, sign in, or provide an email address to use the software.
 
 ## Data Collection
 
-**For Version 0.1**: We collect absolutely zero data. There is no telemetry, analytics, or crash reporting built into the app.
+The website records anonymous release, repository, and web-app button clicks, plus successful browser-demo conversions, only if you accept the analytics notice. A random browser identifier is used to group repeat visits; no account identifier, IP address, file name, file path, or file content is stored in the analytics database. You may decline or clear your choice from this browser at any time.
 
-**Future Versions (V0.2+)**: We plan to introduce an *opt-in only* analytics system to help us understand which tools are used most frequently (e.g., "Image compression was used 10 times today"). This will be turned OFF by default. It will never include file names, file paths, file contents, or personally identifiable information.
+The desktop app sends completed tool names, app version, platform, and timestamps only when **Share anonymous usage analytics** is enabled in Settings. This setting is off by default. Analytics can be disabled at any time; disabling it stops new events from being queued or uploaded.
+
+Analytics are stored in the project’s hosted PostgreSQL database and are visible only to an authenticated administrator. Website file processing remains entirely local in the browser.
 
 ## Temp Files
 

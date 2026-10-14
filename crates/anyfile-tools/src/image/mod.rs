@@ -226,6 +226,138 @@ impl Tool for PngToJpg {
     }
 }
 
+pub struct ImageToFormat {
+    meta: ToolMetadata,
+    engine: ImageEngine,
+    format: ImageFormat,
+}
+
+impl ImageToFormat {
+    pub fn webp() -> Self {
+        Self::new(
+            "image.to_webp",
+            "Convert Image to WebP",
+            "Convert JPG, PNG, or WebP images to WebP format.",
+            "webp",
+            ImageFormat::WebP,
+        )
+    }
+
+    pub fn avif() -> Self {
+        Self::new(
+            "image.to_avif",
+            "Convert Image to AVIF",
+            "Convert JPG, PNG, or WebP images to AVIF format.",
+            "avif",
+            ImageFormat::Avif,
+        )
+    }
+
+    fn new(
+        id: &str,
+        name: &str,
+        description: &str,
+        output_extension: &str,
+        format: ImageFormat,
+    ) -> Self {
+        Self {
+            meta: ToolMetadata {
+                id: id.to_string(),
+                name: name.to_string(),
+                description: description.to_string(),
+                category: ToolCategory::Image,
+                input_extensions: vec![
+                    "jpg".to_string(),
+                    "jpeg".to_string(),
+                    "png".to_string(),
+                    "webp".to_string(),
+                ],
+                output_extension: output_extension.to_string(),
+                requires_engine: EngineKind::BuiltIn,
+            },
+            engine: ImageEngine::new(),
+            format,
+        }
+    }
+}
+
+#[async_trait::async_trait]
+impl Tool for ImageToFormat {
+    fn metadata(&self) -> &ToolMetadata {
+        &self.meta
+    }
+
+    fn validate(&self, request: &JobRequest) -> Result<(), ToolError> {
+        if request.input_files.is_empty() {
+            return Err(ToolError::NoInputFiles);
+        }
+        for path in &request.input_files {
+            let extension = path
+                .extension()
+                .and_then(|value| value.to_str())
+                .unwrap_or("")
+                .to_ascii_lowercase();
+            if !matches!(extension.as_str(), "jpg" | "jpeg" | "png" | "webp") {
+                return Err(ToolError::UnsupportedFormat(format!(
+                    "Unsupported image format: .{extension}"
+                )));
+            }
+        }
+        Ok(())
+    }
+
+    async fn execute(
+        &self,
+        request: &JobRequest,
+        progress: ProgressReporter,
+        cancel: CancellationToken,
+    ) -> Result<JobOutput, ToolError> {
+        let fs_config = FsOutputConfig::from(&request.output_config);
+        let total = request.input_files.len();
+        let mut output_files = Vec::with_capacity(total);
+        let mut per_file_errors = Vec::new();
+
+        for (index, input) in request.input_files.iter().enumerate() {
+            if cancel.is_cancelled() {
+                return Err(ToolError::Cancelled);
+            }
+            let file_name = input
+                .file_name()
+                .and_then(|name| name.to_str())
+                .unwrap_or("file");
+            progress.set_progress(index, total, Some(file_name));
+            let validated = validate_input_path(input)
+                .map_err(|error| ToolError::ProcessingFailed(error.to_string()))?;
+            let output_path =
+                OutputPath::resolve(&fs_config, &validated, &self.meta.output_extension, index)
+                    .map_err(|error| ToolError::OutputError(error.to_string()))?;
+
+            match self
+                .engine
+                .convert(&validated, &output_path.path, self.format)
+            {
+                Ok(()) => {
+                    output_files.push(output_path.path);
+                    progress.file_done(&validated, true);
+                }
+                Err(error) => {
+                    per_file_errors.push(PerFileError {
+                        input_file: input.clone(),
+                        message: error.to_string(),
+                    });
+                    progress.file_done(&validated, false);
+                }
+            }
+        }
+
+        progress.set_percent(100, None);
+        Ok(JobOutput {
+            output_files,
+            per_file_errors,
+        })
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Image Compress
 // ─────────────────────────────────────────────────────────────────────────────
